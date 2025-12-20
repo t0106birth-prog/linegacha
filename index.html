@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>BOXガチャ</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Orbitron:wght@700&family=Zen+Kurenaido&family=Noto+Sans+JP:wght@700&display=swap"
+        rel="stylesheet">
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <!-- Background -->
+        <div class="background-overlay"></div>
+
+        <!-- Main Content -->
+        <main class="gacha-container">
+            <h1 class="title">BOXガチャ</h1>
+
+            <div class="box-area" id="boxArea">
+                <img src="assets/box_closed.png" alt="Treasure Box" class="treasure-box" id="treasureBox">
+                <div class="flash-overlay" id="flashOverlay"></div>
+            </div>
+
+            <div class="controls">
+                <input type="text" id="serialCode" placeholder="シリアルコードを入力" class="neon-input">
+                <button id="spinBtn" class="neon-button">OPEN</button>
+            </div>
+        </main>
+
+        <!-- Result / Loading Overlay -->
+        <div id="resultModal" class="modal hidden">
+            <div class="modal-content">
+                <div id="resultContent">
+                    <!-- Dynamic Content -->
+                </div>
+                <button id="closeBtn" class="close-button hidden">C L O S E</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
