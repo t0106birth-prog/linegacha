@@ -749,7 +749,7 @@ body {
 }
 
 .ssr-rank {
-    font-size: 2.8rem !important;
+    font-size: 1.8rem !important;
     background: linear-gradient(180deg, #fff, #ffd700, #ff8c00);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -806,7 +806,7 @@ body {
 }
 
 .sr-rank {
-    font-size: 2.5rem !important;
+    font-size: 1.8rem !important;
     color: #bc13fe !important;
     text-shadow:
         0 0 10px #bc13fe,
