@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const MY_LIFF_ID = '2006502233-yq0x2pDd';
 
     // 1. Google Apps Scriptをデプロイして発行されたURLをここに貼り付けてください。
-    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwzQw7xL4aQMqlR8--Pom-qMassfjCfqOeiUzx_mZF326HDUuCy-4F-hG3arA70F5WbtA/exec'; 
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbykiyHLidPDgm66QOmHaKPAvB3EyVN16gz658ZCJ2EwFkZs11eENObV8M5Fff-1Ei_rjA/exec'; 
 
     // 3. 本番通信を行う場合は false に、デモ（テスト）の場合は true にしてください。
     const USE_MOCK_BACKEND = false;
@@ -137,11 +137,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function showResult(data) {
         resultContent.innerHTML = '';
 
+        // ランク別の背景演出クラスを追加
+        resultModal.classList.remove('rank-ssr', 'rank-sr', 'rank-r', 'rank-point');
+        resultModal.classList.add('rank-' + (data.rank || 'point').toLowerCase());
+
         // ランクに応じた表示分岐
         switch (data.rank) {
             case 'SSR':
+                showSSRResult(data);
+                break;
             case 'SR':
-                showWinResult(data);
+                showSRResult(data);
                 break;
             case 'R':
                 showRPrizeResult(data);
@@ -158,57 +164,147 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * SSR/SR当選結果表示（フォームリンク付き）
+     * SSR当選結果表示（最も豪華な演出）
      */
-    function showWinResult(data) {
-        // 演出画像
+    function showSSRResult(data) {
+        // パーティクル演出
+        const particles = document.createElement('div');
+        particles.className = 'ssr-particles';
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle gold';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 2 + 's';
+            particle.style.animationDuration = (2 + Math.random() * 2) + 's';
+            particles.appendChild(particle);
+        }
+        resultContent.appendChild(particles);
+
+        // 演出画像（大きく表示）
         const img = document.createElement('img');
         img.src = ASSETS.winEffect;
-        img.className = 'result-image';
+        img.className = 'result-image ssr-image';
         resultContent.appendChild(img);
+
+        // SSRバッジ
+        const badge = document.createElement('div');
+        badge.className = 'rank-badge ssr-badge';
+        badge.innerHTML = '<span>SSR</span>';
+        resultContent.appendChild(badge);
 
         // ランク表示
         const rankText = document.createElement('div');
-        rankText.className = 'result-rank';
-        rankText.textContent = data.rank + ' 獲得！';
+        rankText.className = 'result-rank ssr-rank';
+        rankText.textContent = '✨ 超激レア獲得！ ✨';
         resultContent.appendChild(rankText);
 
         // 景品名
         const text = document.createElement('div');
-        text.className = 'result-text';
+        text.className = 'result-text ssr-prize-name';
         text.textContent = data.prizeName;
         resultContent.appendChild(text);
 
-        // フォームリンクボタン（URLがある場合）
+        // フォームリンクボタン
         if (data.formUrl) {
             const formBtn = document.createElement('a');
             formBtn.href = data.formUrl;
             formBtn.target = '_blank';
-            formBtn.className = 'form-link-button';
+            formBtn.className = 'form-link-button ssr-form-btn';
             formBtn.textContent = '📝 景品のお届け先を入力する';
             resultContent.appendChild(formBtn);
         }
     }
 
     /**
-     * R賞結果表示（店舗受取）
+     * SR当選結果表示（豪華な演出）
      */
-    function showRPrizeResult(data) {
+    function showSRResult(data) {
+        // パーティクル演出（SSRより少なめ）
+        const particles = document.createElement('div');
+        particles.className = 'sr-particles';
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle purple';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 2 + 's';
+            particle.style.animationDuration = (2 + Math.random() * 2) + 's';
+            particles.appendChild(particle);
+        }
+        resultContent.appendChild(particles);
+
         // 演出画像
         const img = document.createElement('img');
         img.src = ASSETS.winEffect;
-        img.className = 'result-image';
+        img.className = 'result-image sr-image';
         resultContent.appendChild(img);
+
+        // SRバッジ
+        const badge = document.createElement('div');
+        badge.className = 'rank-badge sr-badge';
+        badge.innerHTML = '<span>SR</span>';
+        resultContent.appendChild(badge);
 
         // ランク表示
         const rankText = document.createElement('div');
-        rankText.className = 'result-rank r-rank';
-        rankText.textContent = 'R賞 獲得！';
+        rankText.className = 'result-rank sr-rank';
+        rankText.textContent = '🎊 激レア獲得！ 🎊';
         resultContent.appendChild(rankText);
 
         // 景品名
         const text = document.createElement('div');
-        text.className = 'result-text';
+        text.className = 'result-text sr-prize-name';
+        text.textContent = data.prizeName;
+        resultContent.appendChild(text);
+
+        // フォームリンクボタン
+        if (data.formUrl) {
+            const formBtn = document.createElement('a');
+            formBtn.href = data.formUrl;
+            formBtn.target = '_blank';
+            formBtn.className = 'form-link-button sr-form-btn';
+            formBtn.textContent = '📝 景品のお届け先を入力する';
+            resultContent.appendChild(formBtn);
+        }
+    }
+
+    /**
+     * R賞結果表示（シンプルな演出）
+     */
+    function showRPrizeResult(data) {
+        // 控えめなパーティクル
+        const particles = document.createElement('div');
+        particles.className = 'r-particles';
+        for (let i = 0; i < 10; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle green';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 2 + 's';
+            particle.style.animationDuration = (2 + Math.random() * 2) + 's';
+            particles.appendChild(particle);
+        }
+        resultContent.appendChild(particles);
+
+        // 演出画像
+        const img = document.createElement('img');
+        img.src = ASSETS.winEffect;
+        img.className = 'result-image r-image';
+        resultContent.appendChild(img);
+
+        // Rバッジ
+        const badge = document.createElement('div');
+        badge.className = 'rank-badge r-badge';
+        badge.innerHTML = '<span>R</span>';
+        resultContent.appendChild(badge);
+
+        // ランク表示
+        const rankText = document.createElement('div');
+        rankText.className = 'result-rank r-rank';
+        rankText.textContent = '🎁 R賞 獲得！';
+        resultContent.appendChild(rankText);
+
+        // 景品名
+        const text = document.createElement('div');
+        text.className = 'result-text r-prize-name';
         text.textContent = data.prizeName;
         resultContent.appendChild(text);
 
