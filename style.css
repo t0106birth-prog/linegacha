@@ -315,3 +315,227 @@ body {
 .close-button.hidden {
     display: none;
 }
+
+/* =========================================================
+   新機能用スタイル（2025-12-21 仕様変更対応）
+   ========================================================= */
+
+/* ランク表示 */
+.result-rank {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--gold);
+    text-shadow:
+        0 0 10px var(--gold),
+        0 0 20px var(--gold),
+        0 0 30px var(--neon-pink);
+    margin-top: 15px;
+    letter-spacing: 3px;
+    animation: rankPulse 1s ease-in-out infinite;
+}
+
+.result-rank.r-rank {
+    color: #00ff88;
+    text-shadow:
+        0 0 10px #00ff88,
+        0 0 20px #00ff88;
+}
+
+@keyframes rankPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* フォームリンクボタン（SSR/SR用） */
+.form-link-button {
+    display: inline-block;
+    margin-top: 25px;
+    padding: 15px 30px;
+    background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+    color: white;
+    text-decoration: none;
+    border-radius: 30px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 1rem;
+    font-weight: bold;
+    box-shadow:
+        0 0 15px var(--neon-pink),
+        0 0 30px rgba(255, 0, 255, 0.3);
+    transition: all 0.3s ease;
+    animation: buttonGlow 2s ease-in-out infinite;
+}
+
+.form-link-button:hover {
+    transform: scale(1.05);
+    box-shadow:
+        0 0 25px var(--neon-pink),
+        0 0 50px rgba(255, 0, 255, 0.5);
+}
+
+@keyframes buttonGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 15px var(--neon-pink), 0 0 30px rgba(255, 0, 255, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 25px var(--neon-pink), 0 0 50px rgba(255, 0, 255, 0.5);
+    }
+}
+
+/* 店舗受取メッセージ（R賞用） */
+.pickup-message {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(0, 255, 136, 0.1);
+    border: 2px solid #00ff88;
+    border-radius: 15px;
+    text-align: center;
+}
+
+.pickup-message p {
+    color: #fff;
+    margin: 5px 0;
+    font-family: 'Noto Sans JP', sans-serif;
+}
+
+.pickup-instruction {
+    font-size: 1.2rem;
+    color: #00ff88 !important;
+    font-weight: bold;
+    margin-top: 10px !important;
+}
+
+/* ポイント表示（改良版） */
+.point-title {
+    font-size: 2.5rem;
+    color: #00ccff;
+    text-shadow: 0 0 15px #00ccff;
+}
+
+.points-text.exchange-ready {
+    color: var(--gold) !important;
+    font-weight: bold;
+    animation: exchangeReady 0.5s ease-in-out infinite;
+}
+
+@keyframes exchangeReady {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.03);
+    }
+}
+
+/* 交換ボタン */
+.exchange-button {
+    margin-top: 20px;
+    padding: 15px 40px;
+    background: linear-gradient(135deg, var(--gold), #ff8c00);
+    color: #000;
+    border: none;
+    border-radius: 30px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 20px var(--gold);
+    transition: all 0.3s ease;
+    animation: exchangePulse 1.5s ease-in-out infinite;
+}
+
+.exchange-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px var(--gold);
+}
+
+.exchange-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    animation: none;
+}
+
+@keyframes exchangePulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 20px var(--gold);
+    }
+
+    50% {
+        box-shadow: 0 0 35px var(--gold), 0 0 50px rgba(255, 215, 0, 0.5);
+    }
+}
+
+/* 交換成功表示 */
+.exchange-success {
+    color: #00ff88 !important;
+    font-size: 2rem;
+    text-shadow: 0 0 15px #00ff88;
+}
+
+/* ギフトコード表示 */
+.gift-code-container {
+    margin-top: 25px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid var(--gold);
+    border-radius: 15px;
+}
+
+.gift-code-label {
+    color: #aaa;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    font-family: 'Noto Sans JP', sans-serif;
+}
+
+.gift-code-box {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 15px 20px;
+    font-family: 'Orbitron', monospace;
+    font-size: 1.3rem;
+    color: var(--gold);
+    letter-spacing: 2px;
+    word-break: break-all;
+    user-select: all;
+}
+
+.copy-button {
+    margin-top: 15px;
+    padding: 10px 25px;
+    background: transparent;
+    border: 1px solid #00ccff;
+    color: #00ccff;
+    border-radius: 20px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.copy-button:hover {
+    background: #00ccff;
+    color: #000;
+}
+
+.gift-code-note {
+    margin-top: 15px;
+    color: #ff6b6b;
+    font-size: 0.85rem;
+    font-family: 'Noto Sans JP', sans-serif;
+}
