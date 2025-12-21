@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const MY_LIFF_ID = '2006502233-yq0x2pDd';
 
     // 1. Google Apps Scriptをデプロイして発行されたURLをここに貼り付けてください。
-    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbw5hAao8NV7peusTCNKJ7WwjJ-SUge7ylQrJ5b6wgQuzxkHXTIkC1wsR2M_97gHo1phlQ/exec'; 
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwzQw7xL4aQMqlR8--Pom-qMassfjCfqOeiUzx_mZF326HDUuCy-4F-hG3arA70F5WbtA/exec'; 
 
     // 3. 本番通信を行う場合は false に、デモ（テスト）の場合は true にしてください。
     const USE_MOCK_BACKEND = false;
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     spinBtn.addEventListener('click', async () => {
         // ボタンが「CLOSE」モードならLIFFを閉じる
         if (spinBtn.textContent === 'CLOSE') {
-            if (liff.isInClient()) {
+            if (typeof liff !== 'undefined' && liff.isInClient && liff.isInClient()) {
                 liff.closeWindow();
             } else {
                 alert('ブラウザ版のため閉じません（本番のLINE内では閉じます）');
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error('API URLが設定されていません。script.jsを確認してください。');
                 }
                 // userIdとuserNameをパラメータに追加
-                const response = await fetch(`${GAS_API_URL}?code=${code}&userId=${currentUserId}&userName=${encodeURIComponent(currentUserName)}`);
+                const response = await fetch(`${GAS_API_URL}?action=gacha&code=${code}&userId=${currentUserId}&userName=${encodeURIComponent(currentUserName)}`);
                 result = await response.json();
                 if (result.error) {
                     throw new Error(result.error);
@@ -131,61 +131,231 @@ document.addEventListener('DOMContentLoaded', () => {
         resetUI();
     });
 
+    /**
+     * 結果表示（ランク対応版）
+     */
     function showResult(data) {
         resultContent.innerHTML = '';
 
-        if (data.status === 'win') {
-            // SSR Result
-            const img = document.createElement('img');
-            img.src = ASSETS.winEffect;
-            img.className = 'result-image';
-            resultContent.appendChild(img);
-
-            const text = document.createElement('div');
-            text.className = 'result-text';
-            text.textContent = 'SSR 獲得！';
-            resultContent.appendChild(text);
-
-            const details = document.createElement('p');
-            details.textContent = data.prizeName || '高級シャンパン';
-            details.style.color = '#fff';
-            details.style.marginTop = '10px';
-            resultContent.appendChild(details);
-
-        } else {
-            // Point Result (Lose)
-            const pts = data.pointsAdded || 1;
-            const current = data.currentPoints || 10;
-            const target = data.targetPoints || 50;
-            const percent = Math.min((current / target) * 100, 100);
-
-            const title = document.createElement('div');
-            title.className = 'result-text';
-            title.textContent = `${pts}pt GET!`;
-            resultContent.appendChild(title);
-
-            const gaugeContainer = document.createElement('div');
-            gaugeContainer.className = 'points-gauge-container';
-            const fill = document.createElement('div');
-            fill.className = 'points-gauge-fill';
-            fill.style.width = '0%'; // Animate later
-            gaugeContainer.appendChild(fill);
-            resultContent.appendChild(gaugeContainer);
-
-            const sub = document.createElement('p');
-            sub.className = 'points-text';
-            sub.textContent = `スタバチケットまであと ${target - current}pt`;
-            resultContent.appendChild(sub);
-
-            // Animate gauge
-            setTimeout(() => {
-                fill.style.width = `${percent}%`;
-            }, 100);
+        // ランクに応じた表示分岐
+        switch (data.rank) {
+            case 'SSR':
+            case 'SR':
+                showWinResult(data);
+                break;
+            case 'R':
+                showRPrizeResult(data);
+                break;
+            case 'POINT':
+            default:
+                showPointResult(data);
+                break;
         }
 
         resultModal.classList.remove('hidden');
         closeBtn.classList.remove('hidden');
-        closeBtn.textContent = 'CLOSE'; // モーダル内のボタンもシンプルな表示に
+        closeBtn.textContent = 'CLOSE';
+    }
+
+    /**
+     * SSR/SR当選結果表示（フォームリンク付き）
+     */
+    function showWinResult(data) {
+        // 演出画像
+        const img = document.createElement('img');
+        img.src = ASSETS.winEffect;
+        img.className = 'result-image';
+        resultContent.appendChild(img);
+
+        // ランク表示
+        const rankText = document.createElement('div');
+        rankText.className = 'result-rank';
+        rankText.textContent = data.rank + ' 獲得！';
+        resultContent.appendChild(rankText);
+
+        // 景品名
+        const text = document.createElement('div');
+        text.className = 'result-text';
+        text.textContent = data.prizeName;
+        resultContent.appendChild(text);
+
+        // フォームリンクボタン（URLがある場合）
+        if (data.formUrl) {
+            const formBtn = document.createElement('a');
+            formBtn.href = data.formUrl;
+            formBtn.target = '_blank';
+            formBtn.className = 'form-link-button';
+            formBtn.textContent = '📝 景品のお届け先を入力する';
+            resultContent.appendChild(formBtn);
+        }
+    }
+
+    /**
+     * R賞結果表示（店舗受取）
+     */
+    function showRPrizeResult(data) {
+        // 演出画像
+        const img = document.createElement('img');
+        img.src = ASSETS.winEffect;
+        img.className = 'result-image';
+        resultContent.appendChild(img);
+
+        // ランク表示
+        const rankText = document.createElement('div');
+        rankText.className = 'result-rank r-rank';
+        rankText.textContent = 'R賞 獲得！';
+        resultContent.appendChild(rankText);
+
+        // 景品名
+        const text = document.createElement('div');
+        text.className = 'result-text';
+        text.textContent = data.prizeName;
+        resultContent.appendChild(text);
+
+        // 店舗受取メッセージ
+        const pickup = document.createElement('div');
+        pickup.className = 'pickup-message';
+        pickup.innerHTML = `
+            <p>🎉 おめでとうございます！</p>
+            <p class="pickup-instruction">店舗スタッフにこの画面をお見せください</p>
+        `;
+        resultContent.appendChild(pickup);
+    }
+
+    /**
+     * ポイント結果表示（交換ボタン付き）
+     */
+    function showPointResult(data) {
+        const pts = data.pointsAdded || 1;
+        const current = data.currentPoints || 1;
+        const target = data.targetPoints || 10;
+        const percent = Math.min((current / target) * 100, 100);
+
+        // ポイント獲得タイトル
+        const title = document.createElement('div');
+        title.className = 'result-text point-title';
+        title.textContent = `${pts}pt GET!`;
+        resultContent.appendChild(title);
+
+        // ゲージコンテナ
+        const gaugeContainer = document.createElement('div');
+        gaugeContainer.className = 'points-gauge-container';
+        const fill = document.createElement('div');
+        fill.className = 'points-gauge-fill';
+        fill.style.width = '0%'; // Animate later
+        gaugeContainer.appendChild(fill);
+        resultContent.appendChild(gaugeContainer);
+
+        // 残りポイント表示
+        const sub = document.createElement('p');
+        sub.className = 'points-text';
+        if (current >= target) {
+            sub.textContent = `🎁 ${target}pt達成！交換できます！`;
+            sub.classList.add('exchange-ready');
+        } else {
+            sub.textContent = `Amazonギフト券500円まであと ${target - current}pt`;
+        }
+        resultContent.appendChild(sub);
+
+        // 交換可能な場合は交換ボタンを表示
+        if (data.canExchange) {
+            const exchangeBtn = document.createElement('button');
+            exchangeBtn.className = 'exchange-button';
+            exchangeBtn.textContent = '🎁 ギフトコードと交換する';
+            exchangeBtn.addEventListener('click', () => handleExchange());
+            resultContent.appendChild(exchangeBtn);
+        }
+
+        // ゲージアニメーション
+        setTimeout(() => {
+            fill.style.width = `${percent}%`;
+        }, 100);
+    }
+
+    /**
+     * ポイント交換処理
+     */
+    async function handleExchange() {
+        const exchangeBtn = document.querySelector('.exchange-button');
+        if (exchangeBtn) {
+            exchangeBtn.disabled = true;
+            exchangeBtn.textContent = '交換中...';
+        }
+
+        try {
+            let result;
+            if (USE_MOCK_BACKEND) {
+                // モック交換
+                result = await mockExchange();
+            } else {
+                const response = await fetch(`${GAS_API_URL}?action=exchange&userId=${currentUserId}&userName=${encodeURIComponent(currentUserName)}`);
+                result = await response.json();
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+            }
+
+            // 交換結果を表示
+            showExchangeResult(result);
+
+        } catch (error) {
+            console.error(error);
+            alert('交換エラー: ' + error.message);
+            if (exchangeBtn) {
+                exchangeBtn.disabled = false;
+                exchangeBtn.textContent = '🎁 ギフトコードと交換する';
+            }
+        }
+    }
+
+    /**
+     * 交換結果表示
+     */
+    function showExchangeResult(data) {
+        resultContent.innerHTML = '';
+
+        // 成功メッセージ
+        const title = document.createElement('div');
+        title.className = 'result-text exchange-success';
+        title.textContent = '🎉 交換完了！';
+        resultContent.appendChild(title);
+
+        // ギフトコード表示
+        const codeContainer = document.createElement('div');
+        codeContainer.className = 'gift-code-container';
+
+        const codeLabel = document.createElement('p');
+        codeLabel.className = 'gift-code-label';
+        codeLabel.textContent = 'Amazonギフト券 500円分';
+        codeContainer.appendChild(codeLabel);
+
+        const codeBox = document.createElement('div');
+        codeBox.className = 'gift-code-box';
+        codeBox.textContent = data.giftCode;
+        codeContainer.appendChild(codeBox);
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-button';
+        copyBtn.textContent = '📋 コードをコピー';
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(data.giftCode).then(() => {
+                copyBtn.textContent = '✅ コピーしました！';
+                setTimeout(() => {
+                    copyBtn.textContent = '📋 コードをコピー';
+                }, 2000);
+            }).catch(() => {
+                alert('コピーに失敗しました。手動でコピーしてください。');
+            });
+        });
+        codeContainer.appendChild(copyBtn);
+
+        resultContent.appendChild(codeContainer);
+
+        // 注意事項
+        const note = document.createElement('p');
+        note.className = 'gift-code-note';
+        note.textContent = '※ このコードは一度だけ表示されます。必ずメモしてください。';
+        resultContent.appendChild(note);
     }
 
     function resetUI() {
@@ -202,27 +372,84 @@ document.addEventListener('DOMContentLoaded', () => {
         serialInput.value = '';
     }
 
+    // =========================================================
     // Mock Backend for Logic Verification
+    // =========================================================
+
+    /**
+     * モックバックエンド（ランク対応版）
+     */
     async function mockBackend(code) {
         // Simulate network delay
         await new Promise(r => setTimeout(r, 1000));
 
-        // Check "Mock" logic
+        // テストコードパターン
         if (code === 'SSR') {
             return {
                 status: 'win',
-                prizeName: 'アルマンド・ゴールド'
+                rank: 'SSR',
+                prizeName: '✨ アルマンド・ゴールド ✨',
+                formUrl: 'https://forms.google.com/example'
+            };
+        } else if (code === 'SR') {
+            return {
+                status: 'win',
+                rank: 'SR',
+                prizeName: '🎁 高級ワインセット 🎁',
+                formUrl: 'https://forms.google.com/example'
+            };
+        } else if (code === 'R') {
+            return {
+                status: 'win',
+                rank: 'R',
+                prizeName: '🎫 Amazonギフト券 1,000円分 🎫',
+                pickupMessage: 'おめでとうございます！店舗スタッフにこの画面をお見せください。'
+            };
+        } else if (code === 'POINT') {
+            // 通常ポイント（交換不可）
+            return {
+                status: 'point',
+                rank: 'POINT',
+                pointsAdded: 1,
+                currentPoints: 5,
+                targetPoints: 10,
+                canExchange: false
+            };
+        } else if (code === 'POINT10') {
+            // ポイント交換可能
+            return {
+                status: 'point',
+                rank: 'POINT',
+                pointsAdded: 1,
+                currentPoints: 10,
+                targetPoints: 10,
+                canExchange: true
             };
         } else if (code.startsWith('TEST')) {
+            // ランダムポイント（旧仕様互換）
             return {
-                status: 'lose',
+                status: 'point',
+                rank: 'POINT',
                 pointsAdded: 1,
-                currentPoints: Math.floor(Math.random() * 40),
-                targetPoints: 50
+                currentPoints: Math.floor(Math.random() * 9) + 1,
+                targetPoints: 10,
+                canExchange: false
             };
         } else {
-            // Default: Make it error to allow user to understand it's a mock
-            throw new Error('デモモード: 無効なシリアルコードです (テスト用コード: "SSR" または "TEST...")');
+            throw new Error('デモモード: 無効なシリアルコードです\n\nテスト用コード:\n"SSR" → SSR当選\n"SR" → SR当選\n"R" → R賞当選\n"POINT" → ポイント獲得\n"POINT10" → 交換可能');
         }
+    }
+
+    /**
+     * モック交換処理
+     */
+    async function mockExchange() {
+        await new Promise(r => setTimeout(r, 500));
+        return {
+            status: 'exchanged',
+            giftCode: 'DEMO-XXXX-XXXX-XXXX',
+            message: 'Amazonギフト券 500円分と交換しました！',
+            remainingPoints: 0
+        };
     }
 });
