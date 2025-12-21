@@ -539,3 +539,316 @@ body {
     font-size: 0.85rem;
     font-family: 'Noto Sans JP', sans-serif;
 }
+
+/* =========================================================
+   ランク別演出スタイル（SSR > SR > R）
+   ========================================================= */
+
+/* モーダル背景 - ランク別 */
+.modal.rank-ssr {
+    background: radial-gradient(ellipse at center, rgba(255, 215, 0, 0.3) 0%, rgba(0, 0, 0, 0.95) 70%);
+}
+
+.modal.rank-sr {
+    background: radial-gradient(ellipse at center, rgba(188, 19, 254, 0.25) 0%, rgba(0, 0, 0, 0.95) 70%);
+}
+
+.modal.rank-r {
+    background: radial-gradient(ellipse at center, rgba(0, 255, 136, 0.15) 0%, rgba(0, 0, 0, 0.95) 70%);
+}
+
+.modal.rank-point {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+/* パーティクルコンテナ */
+.ssr-particles,
+.sr-particles,
+.r-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* パーティクル共通 */
+.particle {
+    position: absolute;
+    top: -20px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    animation: particleFall linear infinite;
+}
+
+/* SSR - 金のパーティクル */
+.particle.gold {
+    background: linear-gradient(135deg, #ffd700, #ffec8b, #ffd700);
+    box-shadow: 0 0 10px #ffd700, 0 0 20px #ffd700;
+    width: 12px;
+    height: 12px;
+}
+
+/* SR - 紫のパーティクル */
+.particle.purple {
+    background: linear-gradient(135deg, #bc13fe, #ff00ff, #bc13fe);
+    box-shadow: 0 0 8px #bc13fe, 0 0 15px #bc13fe;
+    width: 10px;
+    height: 10px;
+}
+
+/* R - 緑のパーティクル */
+.particle.green {
+    background: linear-gradient(135deg, #00ff88, #00cc66, #00ff88);
+    box-shadow: 0 0 5px #00ff88;
+    width: 8px;
+    height: 8px;
+}
+
+@keyframes particleFall {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* ランクバッジ */
+.rank-badge {
+    position: relative;
+    display: inline-block;
+    padding: 10px 30px;
+    border-radius: 5px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2rem;
+    font-weight: bold;
+    letter-spacing: 5px;
+    margin-bottom: 10px;
+    z-index: 10;
+}
+
+/* SSRバッジ - 虹色グラデーション */
+.ssr-badge {
+    background: linear-gradient(135deg, #ffd700, #ff8c00, #ff0080, #8000ff, #00bfff, #00ff80, #ffd700);
+    background-size: 400% 400%;
+    animation: rainbowShift 3s ease infinite, ssrBadgePulse 1s ease-in-out infinite;
+    color: #000;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+    box-shadow:
+        0 0 20px #ffd700,
+        0 0 40px #ffd700,
+        0 0 60px rgba(255, 215, 0, 0.5);
+}
+
+.ssr-badge span {
+    background: linear-gradient(180deg, #fff, #ffd700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+@keyframes rainbowShift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes ssrBadgePulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* SRバッジ - 紫グラデーション */
+.sr-badge {
+    background: linear-gradient(135deg, #8000ff, #bc13fe, #ff00ff, #bc13fe, #8000ff);
+    background-size: 200% 200%;
+    animation: srShift 2s ease infinite, srBadgePulse 1.2s ease-in-out infinite;
+    color: #fff;
+    box-shadow:
+        0 0 15px #bc13fe,
+        0 0 30px rgba(188, 19, 254, 0.5);
+}
+
+@keyframes srShift {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes srBadgePulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.03);
+    }
+}
+
+/* Rバッジ - 緑 */
+.r-badge {
+    background: linear-gradient(135deg, #00cc66, #00ff88, #00cc66);
+    color: #000;
+    box-shadow: 0 0 10px #00ff88;
+}
+
+/* SSR用演出 */
+.ssr-image {
+    max-width: 350px !important;
+    animation: ssrImagePop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.5);
+    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
+}
+
+@keyframes ssrImagePop {
+    0% {
+        transform: scale(0) rotate(-10deg);
+        opacity: 0;
+    }
+
+    60% {
+        transform: scale(1.2) rotate(5deg);
+    }
+
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+.ssr-rank {
+    font-size: 2.8rem !important;
+    background: linear-gradient(180deg, #fff, #ffd700, #ff8c00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    animation: ssrTextGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes ssrTextGlow {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 10px #ffd700) drop-shadow(0 0 20px #ffd700);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 20px #ffd700) drop-shadow(0 0 40px #ff8c00);
+    }
+}
+
+.ssr-prize-name {
+    color: #ffd700 !important;
+    font-size: 1.5rem;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+}
+
+.ssr-form-btn {
+    background: linear-gradient(135deg, #ffd700, #ff8c00) !important;
+    color: #000 !important;
+    box-shadow: 0 0 20px #ffd700, 0 0 40px rgba(255, 215, 0, 0.5) !important;
+}
+
+/* SR用演出 */
+.sr-image {
+    max-width: 300px !important;
+    animation: srImagePop 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.4);
+    filter: drop-shadow(0 0 20px rgba(188, 19, 254, 0.7));
+}
+
+@keyframes srImagePop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    70% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.sr-rank {
+    font-size: 2.5rem !important;
+    color: #bc13fe !important;
+    text-shadow:
+        0 0 10px #bc13fe,
+        0 0 20px #ff00ff !important;
+}
+
+.sr-prize-name {
+    color: #e0b0ff !important;
+    font-size: 1.4rem;
+    text-shadow: 0 0 10px rgba(188, 19, 254, 0.6);
+}
+
+.sr-form-btn {
+    background: linear-gradient(135deg, #8000ff, #bc13fe) !important;
+}
+
+/* R用演出 */
+.r-image {
+    max-width: 250px !important;
+    animation: rImagePop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.3);
+    filter: drop-shadow(0 0 15px rgba(0, 255, 136, 0.5));
+}
+
+@keyframes rImagePop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.r-rank {
+    font-size: 2.2rem !important;
+    color: #00ff88 !important;
+    text-shadow: 0 0 10px #00ff88 !important;
+}
+
+.r-prize-name {
+    color: #88ffbb !important;
+    font-size: 1.3rem;
+}
