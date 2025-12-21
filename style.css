@@ -730,10 +730,11 @@ body {
 }
 
 /* SSR用演出 */
+/* SSR用演出 */
 .ssr-image {
-    max-width: 150px !important;
+    max-width: 300px !important;
     animation: ssrImagePop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.5);
-    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8));
+    filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
 }
 
 @keyframes ssrImagePop {
@@ -753,14 +754,14 @@ body {
 }
 
 .ssr-rank {
-    font-size: 1.3rem !important;
+    font-size: 1.8rem !important;
     background: linear-gradient(180deg, #fff, #ffd700, #ff8c00);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     text-shadow: none;
     animation: ssrTextGlow 1.5s ease-in-out infinite;
-    margin-top: 5px !important;
+    margin-top: 15px !important;
 }
 
 @keyframes ssrTextGlow {
@@ -777,9 +778,9 @@ body {
 
 .ssr-prize-name {
     color: #ffd700 !important;
-    font-size: 1.1rem;
+    font-size: 1.4rem;
     text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
-    margin-top: 5px !important;
+    margin-top: 10px !important;
 }
 
 .ssr-form-btn {
