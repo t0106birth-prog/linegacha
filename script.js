@@ -22,11 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const MY_LIFF_ID = '2006502233-yq0x2pDd';
 
     // 1. Google Apps Scriptをデプロイして発行されたURLをここに貼り付けてください。
-    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzd--C2_I2GmoFhKd9PKCbFo_2GUdtfdrVkpLXcA-ripWNPv6qPup8Zsw8VIVwzjNh8/exec'; 
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbw_7ublASbRw-d8tIi_QAeaE_9SnBzaxfvPCEmEZT1MSmJFAN6gGW2diR1iSbBRbAfJWQ/exec'; 
 
     // 3. 本番通信を行う場合は false に、デモ（テスト）の場合は true にしてください。
     const USE_MOCK_BACKEND = false;
     // -----------------------------------------------------------------
+
     let currentUserId = 'anonymous';
     let currentUserName = 'Guest';
 
@@ -332,6 +333,50 @@ document.addEventListener('DOMContentLoaded', () => {
         text.textContent = data.prizeName;
         resultContent.appendChild(text);
 
+        // ギフトコード表示 (Amazonギフト券などコードがある場合)
+        if (data.giftCode) {
+            const codeContainer = document.createElement('div');
+            codeContainer.className = 'gift-code-container';
+            codeContainer.style.marginTop = '20px';
+
+            const codeBox = document.createElement('div');
+            codeBox.className = 'gift-code-box';
+            codeBox.textContent = data.giftCode;
+            codeBox.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+            codeBox.style.padding = '10px';
+            codeBox.style.borderRadius = '5px';
+            codeBox.style.fontFamily = 'monospace';
+            codeBox.style.fontSize = '1.2rem';
+            codeBox.style.margin = '10px 0';
+            codeBox.style.border = '1px dashed #00ff88';
+            codeContainer.appendChild(codeBox);
+
+            const copyBtn = document.createElement('button');
+            copyBtn.className = 'copy-button';
+            copyBtn.textContent = '📋 コードをコピー';
+            copyBtn.style.width = '100%';
+            copyBtn.style.padding = '8px';
+            copyBtn.style.backgroundColor = '#00ff88';
+            copyBtn.style.color = '#000';
+            copyBtn.style.border = 'none';
+            copyBtn.style.borderRadius = '5px';
+            copyBtn.style.fontWeight = 'bold';
+            copyBtn.style.cursor = 'pointer';
+
+            copyBtn.addEventListener('click', () => {
+                navigator.clipboard.writeText(data.giftCode).then(() => {
+                    copyBtn.textContent = '✅ コピーしました！';
+                    setTimeout(() => {
+                        copyBtn.textContent = '📋 コードをコピー';
+                    }, 2000);
+                }).catch(() => {
+                    alert('コピーに失敗しました。手動でコピーしてください。');
+                });
+            });
+            codeContainer.appendChild(copyBtn);
+            resultContent.appendChild(codeContainer);
+        }
+
         // LINE送信案内
         resultContent.appendChild(createLineSentMessage(data.message));
     }
@@ -535,8 +580,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return {
                 status: 'win',
                 rank: 'R',
+                giftCode: 'AMZN-R100-TEST-CODE',
                 prizeName: '🎫 Amazonギフト券 1,000円分 🎫',
-                pickupMessage: 'おめでとうございます！店舗スタッフにこの画面をお見せください。'
+                message: '詳細をLINEに送信しました'
             };
         } else if (code === 'POINT') {
             // 通常ポイント（交換不可）
