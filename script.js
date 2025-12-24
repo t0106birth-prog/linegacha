@@ -22,12 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const MY_LIFF_ID = '2006502233-yq0x2pDd';
 
     // 1. Google Apps Scriptをデプロイして発行されたURLをここに貼り付けてください。
-    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyZ1rrFqxAEyUDdYsxFl3gnfIKspX0nrJbAhjyZ0-FkZY6YapE4spEWRE1vvU0XxJutvw/exec'; 
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbzd--C2_I2GmoFhKd9PKCbFo_2GUdtfdrVkpLXcA-ripWNPv6qPup8Zsw8VIVwzjNh8/exec'; 
 
     // 3. 本番通信を行う場合は false に、デモ（テスト）の場合は true にしてください。
     const USE_MOCK_BACKEND = false;
     // -----------------------------------------------------------------
-
     let currentUserId = 'anonymous';
     let currentUserName = 'Guest';
 
@@ -138,8 +137,10 @@ document.addEventListener('DOMContentLoaded', () => {
         resultContent.innerHTML = '';
 
         // ランク別の背景演出クラスを追加
-        resultModal.classList.remove('rank-ssr', 'rank-sr', 'rank-r', 'rank-point');
-        resultModal.classList.add('rank-' + (data.rank || 'point').toLowerCase());
+        resultModal.className = 'modal'; // reset classes
+        if (data.rank) {
+            resultModal.classList.add(`rank-${data.rank.toLowerCase()}`);
+        }
 
         // ランクに応じた表示分岐
         switch (data.rank) {
@@ -153,14 +154,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 showRPrizeResult(data);
                 break;
             case 'POINT':
-            default:
                 showPointResult(data);
+                break;
+            case 'LOSE':
+                showLoseResult(data);
+                break;
+            default:
+                // 未定義の場合はポイント表示へ（フォールバック）
+                if (data.status === 'point') {
+                    showPointResult(data);
+                } else {
+                    showLoseResult(data);
+                }
                 break;
         }
 
         resultModal.classList.remove('hidden');
         closeBtn.classList.remove('hidden');
         closeBtn.textContent = 'CLOSE';
+    }
+
+    /**
+     * 結果詳細メッセージ（LINE送信案内）を作成
+     */
+    function createLineSentMessage(text) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'line-sent-message';
+        wrapper.style.marginTop = '15px';
+        wrapper.style.padding = '10px';
+        wrapper.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        wrapper.style.borderRadius = '8px';
+        wrapper.style.textAlign = 'center';
+
+        const icon = document.createElement('div');
+        icon.textContent = '📨';
+        icon.style.fontSize = '1.5rem';
+        icon.style.marginBottom = '5px';
+
+        const msg = document.createElement('div');
+        msg.textContent = text || '詳細をLINEに送信しました';
+        msg.style.color = '#fff';
+        msg.style.fontSize = '0.9rem';
+
+        wrapper.appendChild(icon);
+        wrapper.appendChild(msg);
+        return wrapper;
     }
 
     /**
@@ -204,15 +242,8 @@ document.addEventListener('DOMContentLoaded', () => {
         text.textContent = data.prizeName;
         resultContent.appendChild(text);
 
-        // フォームリンクボタン
-        if (data.formUrl) {
-            const formBtn = document.createElement('a');
-            formBtn.href = data.formUrl;
-            formBtn.target = '_blank';
-            formBtn.className = 'form-link-button ssr-form-btn';
-            formBtn.textContent = '📝 景品のお届け先を入力する';
-            resultContent.appendChild(formBtn);
-        }
+        // LINE送信案内
+        resultContent.appendChild(createLineSentMessage(data.message));
     }
 
     /**
@@ -256,19 +287,12 @@ document.addEventListener('DOMContentLoaded', () => {
         text.textContent = data.prizeName;
         resultContent.appendChild(text);
 
-        // フォームリンクボタン
-        if (data.formUrl) {
-            const formBtn = document.createElement('a');
-            formBtn.href = data.formUrl;
-            formBtn.target = '_blank';
-            formBtn.className = 'form-link-button sr-form-btn';
-            formBtn.textContent = '📝 景品のお届け先を入力する';
-            resultContent.appendChild(formBtn);
-        }
+        // LINE送信案内
+        resultContent.appendChild(createLineSentMessage(data.message));
     }
 
     /**
-     * R賞結果表示（シンプルな演出）
+     * R賞結果表示
      */
     function showRPrizeResult(data) {
         // 控えめなパーティクル
@@ -299,7 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // ランク表示
         const rankText = document.createElement('div');
         rankText.className = 'result-rank r-rank';
-        rankText.textContent = '🎁 R賞 獲得！';
+        rankText.textContent = '🎉 当たり！ 🎉';
         resultContent.appendChild(rankText);
 
         // 景品名
@@ -308,14 +332,27 @@ document.addEventListener('DOMContentLoaded', () => {
         text.textContent = data.prizeName;
         resultContent.appendChild(text);
 
-        // 店舗受取メッセージ
-        const pickup = document.createElement('div');
-        pickup.className = 'pickup-message';
-        pickup.innerHTML = `
-            <p>🎉 おめでとうございます！</p>
-            <p class="pickup-instruction">店舗スタッフにこの画面をお見せください</p>
-        `;
-        resultContent.appendChild(pickup);
+        // LINE送信案内
+        resultContent.appendChild(createLineSentMessage(data.message));
+    }
+
+    /**
+     * 完全ハズレ表示
+     */
+    function showLoseResult(data) {
+        const text = document.createElement('div');
+        text.className = 'result-text';
+        text.style.color = '#ccc';
+        text.style.fontSize = '1.3rem';
+        text.style.marginTop = '40px';
+        text.textContent = '残念... はずれです';
+        resultContent.appendChild(text);
+
+        const sub = document.createElement('div');
+        sub.textContent = 'また挑戦してね！';
+        sub.style.color = '#888';
+        sub.style.marginTop = '15px';
+        resultContent.appendChild(sub);
     }
 
     /**
