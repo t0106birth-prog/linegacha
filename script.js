@@ -71,6 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
             gachaContainer.classList.add('hidden');
             historyContainer.classList.remove('hidden');
             loadHistory();
+        } else {
+            // modeが指定されていない、またはhistory以外の時はガチャを表示
+            gachaContainer.classList.remove('hidden');
+            historyContainer.classList.add('hidden');
         }
     }
 
