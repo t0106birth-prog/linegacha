@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultModal = document.getElementById('resultModal');
     const resultContent = document.getElementById('resultContent');
     const closeBtn = document.getElementById('closeBtn');
+    const historyContainer = document.getElementById('historyContainer');
+    const gachaContainer = document.querySelector('.gacha-container');
 
     // State
     const ASSETS = {
@@ -22,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const MY_LIFF_ID = '2006502233-yq0x2pDd';
 
     // 1. Google Apps Scriptをデプロイして発行されたURLをここに貼り付けてください。
-    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbw_7ublASbRw-d8tIi_QAeaE_9SnBzaxfvPCEmEZT1MSmJFAN6gGW2diR1iSbBRbAfJWQ/exec'; 
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwnOF8rMZb47kg0Wc1tbXt2OwWf7wDSg5ZPtV94RJq1Hz5nNYOUcjjY5slQE0a1cDtW8A/exec'; 
 
     // 3. 本番通信を行う場合は false に、デモ（テスト）の場合は true にしてください。
     const USE_MOCK_BACKEND = false;
@@ -50,7 +52,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (!USE_MOCK_BACKEND) {
-        initializeLiff();
+        initializeLiff().then(() => {
+            handleRouting();
+        });
+    } else {
+        // Mock mode routing
+        setTimeout(handleRouting, 100);
+    }
+
+    /**
+     * URLパラメータに基づいて表示を切り替える
+     */
+    function handleRouting() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+
+        if (mode === 'history') {
+            gachaContainer.classList.add('hidden');
+            historyContainer.classList.remove('hidden');
+            loadHistory();
+        }
     }
 
     spinBtn.addEventListener('click', async () => {
@@ -87,8 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!GAS_API_URL) {
                     throw new Error('API URLが設定されていません。script.jsを確認してください。');
                 }
-                // userIdとuserNameをパラメータに追加
-                const response = await fetch(`${GAS_API_URL}?action=gacha&code=${code}&userId=${currentUserId}&userName=${encodeURIComponent(currentUserName)}`);
+                // userNameをパラメータから削除
+                const response = await fetch(`${GAS_API_URL}?action=gacha&code=${code}&userId=${currentUserId}`);
                 result = await response.json();
                 if (result.error) {
                     throw new Error(result.error);
@@ -243,6 +264,9 @@ document.addEventListener('DOMContentLoaded', () => {
         text.textContent = data.prizeName;
         resultContent.appendChild(text);
 
+        // ギフトコード表示
+        renderGiftCodeDisplay(data.giftCode, '#ffd700');
+
         // LINE送信案内
         resultContent.appendChild(createLineSentMessage(data.message));
     }
@@ -287,6 +311,9 @@ document.addEventListener('DOMContentLoaded', () => {
         text.className = 'result-text sr-prize-name';
         text.textContent = data.prizeName;
         resultContent.appendChild(text);
+
+        // ギフトコード表示
+        renderGiftCodeDisplay(data.giftCode, '#bc13fe');
 
         // LINE送信案内
         resultContent.appendChild(createLineSentMessage(data.message));
@@ -333,52 +360,59 @@ document.addEventListener('DOMContentLoaded', () => {
         text.textContent = data.prizeName;
         resultContent.appendChild(text);
 
-        // ギフトコード表示 (Amazonギフト券などコードがある場合)
-        if (data.giftCode) {
-            const codeContainer = document.createElement('div');
-            codeContainer.className = 'gift-code-container';
-            codeContainer.style.marginTop = '20px';
-
-            const codeBox = document.createElement('div');
-            codeBox.className = 'gift-code-box';
-            codeBox.textContent = data.giftCode;
-            codeBox.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-            codeBox.style.padding = '10px';
-            codeBox.style.borderRadius = '5px';
-            codeBox.style.fontFamily = 'monospace';
-            codeBox.style.fontSize = '1.2rem';
-            codeBox.style.margin = '10px 0';
-            codeBox.style.border = '1px dashed #00ff88';
-            codeContainer.appendChild(codeBox);
-
-            const copyBtn = document.createElement('button');
-            copyBtn.className = 'copy-button';
-            copyBtn.textContent = '📋 コードをコピー';
-            copyBtn.style.width = '100%';
-            copyBtn.style.padding = '8px';
-            copyBtn.style.backgroundColor = '#00ff88';
-            copyBtn.style.color = '#000';
-            copyBtn.style.border = 'none';
-            copyBtn.style.borderRadius = '5px';
-            copyBtn.style.fontWeight = 'bold';
-            copyBtn.style.cursor = 'pointer';
-
-            copyBtn.addEventListener('click', () => {
-                navigator.clipboard.writeText(data.giftCode).then(() => {
-                    copyBtn.textContent = '✅ コピーしました！';
-                    setTimeout(() => {
-                        copyBtn.textContent = '📋 コードをコピー';
-                    }, 2000);
-                }).catch(() => {
-                    alert('コピーに失敗しました。手動でコピーしてください。');
-                });
-            });
-            codeContainer.appendChild(copyBtn);
-            resultContent.appendChild(codeContainer);
-        }
+        // ギフトコード表示
+        renderGiftCodeDisplay(data.giftCode, '#00ff88');
 
         // LINE送信案内
         resultContent.appendChild(createLineSentMessage(data.message));
+    }
+
+    /**
+     * ギフトコードの表示とコピーボタンを作成
+     */
+    function renderGiftCodeDisplay(giftCode, color) {
+        if (!giftCode) return;
+
+        const codeContainer = document.createElement('div');
+        codeContainer.className = 'gift-code-container';
+        codeContainer.style.marginTop = '20px';
+
+        const codeBox = document.createElement('div');
+        codeBox.className = 'gift-code-box';
+        codeBox.textContent = giftCode;
+        codeBox.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+        codeBox.style.padding = '10px';
+        codeBox.style.borderRadius = '5px';
+        codeBox.style.fontFamily = 'monospace';
+        codeBox.style.fontSize = '1.2rem';
+        codeBox.style.margin = '10px 0';
+        codeBox.style.border = `1px dashed ${color}`;
+        codeContainer.appendChild(codeBox);
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-button';
+        copyBtn.textContent = '📋 コードをコピー';
+        copyBtn.style.width = '100%';
+        copyBtn.style.padding = '8px';
+        copyBtn.style.backgroundColor = color;
+        copyBtn.style.color = '#000';
+        copyBtn.style.border = 'none';
+        copyBtn.style.borderRadius = '5px';
+        copyBtn.style.fontWeight = 'bold';
+        copyBtn.style.cursor = 'pointer';
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(giftCode).then(() => {
+                copyBtn.textContent = '✅ コピーしました！';
+                setTimeout(() => {
+                    copyBtn.textContent = '📋 コードをコピー';
+                }, 2000);
+            }).catch(() => {
+                alert('コピーに失敗しました。手動でコピーしてください。');
+            });
+        });
+        codeContainer.appendChild(copyBtn);
+        resultContent.appendChild(codeContainer);
     }
 
     /**
@@ -466,7 +500,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // モック交換
                 result = await mockExchange();
             } else {
-                const response = await fetch(`${GAS_API_URL}?action=exchange&userId=${currentUserId}&userName=${encodeURIComponent(currentUserName)}`);
+                // userNameを削除
+                const response = await fetch(`${GAS_API_URL}?action=exchange&userId=${currentUserId}`);
                 result = await response.json();
                 if (result.error) {
                     throw new Error(result.error);
@@ -535,6 +570,148 @@ document.addEventListener('DOMContentLoaded', () => {
         note.textContent = '※ このコードは一度だけ表示されます。必ずメモしてください。';
         resultContent.appendChild(note);
     }
+
+    // =========================================================
+    // 履歴画面ロジック
+    // =========================================================
+
+    /**
+     * 履歴データを取得して描画する
+     */
+    async function loadHistory() {
+        try {
+            let data;
+            if (USE_MOCK_BACKEND) {
+                // デモ用データ
+                data = {
+                    prizes: [
+                        { rank: 'SSR', prizeName: '✨ アルマンド・ゴールド ✨', giftCode: 'MOCK-SSR-1234', date: '2024-12-24 10:00:00' },
+                        { rank: 'R', prizeName: '🎫 Amazonギフト券 1,000円分 🎫', giftCode: 'AMZN-R100-TEST', date: '2024-12-23 15:30:00' }
+                    ],
+                    exchange: [
+                        { rank: 'EXCHANGE', prizeName: 'Amazonギフト券 500円分', giftCode: 'AMZN-500-EXCH', date: '2024-12-25 09:00:00' }
+                    ],
+                    points: 5,
+                    canExchange: false
+                };
+            } else {
+                const response = await fetch(`${GAS_API_URL}?action=getHistory&userId=${currentUserId}`);
+                data = await response.json();
+            }
+
+            renderHistory(data);
+        } catch (error) {
+            console.error('履歴の取得に失敗しました', error);
+            alert('履歴の取得に失敗しました');
+        }
+    }
+
+    /**
+     * 履歴画面の描画
+     */
+    function renderHistory(data) {
+        const prizesList = document.getElementById('prizesList');
+        const exchangeList = document.getElementById('exchangeList');
+        const pointDashBoard = document.getElementById('pointDashBoard');
+        const currentPointsEl = document.getElementById('currentHistoryPoints');
+        const exchangeBtn = document.getElementById('historyExchangeBtn');
+        const pointsTabBtn = document.getElementById('pointsTabBtn');
+
+        // ポイント表示制御
+        if (data.points > 0 || data.exchange.length > 0) {
+            pointDashBoard.classList.remove('hidden');
+            pointsTabBtn.classList.remove('hidden');
+            currentPointsEl.textContent = data.points;
+
+            if (data.canExchange) {
+                exchangeBtn.classList.remove('hidden');
+                exchangeBtn.onclick = () => handleExchange().then(() => loadHistory());
+            } else {
+                exchangeBtn.classList.add('hidden');
+            }
+        }
+
+        // 獲得賞品リスト
+        prizesList.innerHTML = '';
+        if (data.prizes.length === 0) {
+            prizesList.innerHTML = '<div class="empty-msg">獲得した賞品はありません</div>';
+        } else {
+            data.prizes.forEach(item => {
+                prizesList.appendChild(createHistoryItem(item));
+            });
+        }
+
+        // 交換履歴リスト (ポイントタブ内)
+        exchangeList.innerHTML = '';
+        if (data.exchange.length === 0) {
+            exchangeList.innerHTML = '<div class="empty-msg">交換履歴はありません</div>';
+        } else {
+            data.exchange.forEach(item => {
+                exchangeList.appendChild(createHistoryItem(item));
+            });
+        }
+    }
+
+    /**
+     * 1つの履歴アイテム要素を作成
+     */
+    function createHistoryItem(item) {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+
+        // 日付を整形 (GASのDateオブジェクトまたは文字列に対応)
+        const dateStr = item.date ? new Date(item.date).toLocaleString('ja-JP', {
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit'
+        }) : '不明';
+
+        div.innerHTML = `
+            <div class="item-info">
+                <div class="item-date">${dateStr}</div>
+                <div class="item-name">${item.prizeName}</div>
+            </div>
+            <div class="item-rank-badge item-rank-${item.rank.toLowerCase()}">${item.rank === 'EXCHANGE' ? 'GIFT' : item.rank}</div>
+        `;
+
+        // クリックで再表示
+        div.addEventListener('click', () => {
+            const resultData = {
+                rank: item.rank,
+                prizeName: item.prizeName,
+                giftCode: item.giftCode,
+                status: item.rank === 'EXCHANGE' ? 'exchanged' : 'win',
+                message: '獲得済みの景品です'
+            };
+
+            if (item.rank === 'EXCHANGE') {
+                showExchangeResult(resultData);
+                resultModal.classList.remove('hidden');
+                closeBtn.classList.remove('hidden');
+                closeBtn.textContent = 'CLOSE';
+            } else {
+                showResult(resultData);
+            }
+        });
+
+        return div;
+    }
+
+    // タブ切り替えロジック
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetTab = btn.getAttribute('data-tab');
+
+            // ボタンの活性状態切り替え
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // コンテンツの切り替え
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(targetTab + 'Tab').classList.add('active');
+        });
+    });
 
     function resetUI() {
         // Reset Box
