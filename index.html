@@ -12,6 +12,15 @@
         href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Orbitron:wght@700&family=Zen+Kurenaido&family=Noto+Sans+JP:wght@700&display=swap"
         rel="stylesheet">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+        // JSロード前に実行して画面のチラつき（フラッシュ）を防止
+        (function () {
+            var urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') === 'history') {
+                document.documentElement.classList.add('is-history-init');
+            }
+        })();
+    </script>
 </head>
 
 <body>
@@ -20,7 +29,7 @@
         <div class="background-overlay"></div>
 
         <!-- Main Content -->
-        <main class="gacha-container hidden">
+        <main class="gacha-container">
             <h1 class="title">BOXガチャ</h1>
 
             <div class="box-area" id="boxArea">
