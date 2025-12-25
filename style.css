@@ -5,6 +5,10 @@
     --gold: #ffd700;
 }
 
+.hidden {
+    display: none !important;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -858,4 +862,209 @@ body {
 .r-prize-name {
     color: #88ffbb !important;
     font-size: 1.3rem;
+}
+
+/* =========================================================
+   履歴画面用スタイル
+   ========================================================= */
+
+.history-container {
+    position: relative;
+    z-index: 10;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    overflow-y: auto;
+}
+
+.history-container.hidden {
+    display: none;
+}
+
+/* ポイントダッシュボード */
+.point-dashboard {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--neon-purple);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 25px;
+    box-shadow: 0 0 20px rgba(188, 19, 254, 0.2);
+}
+
+.point-dashboard.hidden {
+    display: none;
+}
+
+.pts-label {
+    font-size: 0.9rem;
+    color: #aaa;
+    margin-bottom: 10px;
+}
+
+.pts-value {
+    font-size: 2.5rem;
+    font-family: 'Orbitron', sans-serif;
+    color: #fff;
+    text-shadow: 0 0 10px var(--neon-purple);
+}
+
+.pts-unit {
+    font-size: 1.2rem;
+    margin-left: 5px;
+}
+
+.exchange-button-small {
+    margin-top: 15px;
+    padding: 10px 25px;
+    background: linear-gradient(135deg, var(--gold), #ff8c00);
+    color: #000;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 10px var(--gold);
+}
+
+/* タブボタン */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 12px;
+    color: #555;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.tab-btn.active {
+    color: #fff;
+    text-shadow: 0 0 5px #fff;
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--neon-pink);
+    box-shadow: 0 0 10px var(--neon-pink);
+}
+
+.tab-btn.hidden {
+    display: none;
+}
+
+/* 履歴リスト */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.history-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.history-item:active {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(0.98);
+}
+
+.item-info {
+    flex: 1;
+}
+
+.item-date {
+    font-size: 0.75rem;
+    color: #888;
+    margin-bottom: 4px;
+}
+
+.item-name {
+    font-size: 1rem;
+    color: #fff;
+    font-family: 'Noto Sans JP', sans-serif;
+}
+
+.item-rank-badge {
+    font-size: 0.7rem;
+    font-family: 'Orbitron', sans-serif;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: #444;
+}
+
+.item-rank-ssr {
+    background: var(--gold);
+    color: #000;
+}
+
+.item-rank-sr {
+    background: var(--neon-purple);
+    color: #fff;
+}
+
+.item-rank-r {
+    background: #00ff88;
+    color: #000;
+}
+
+.item-rank-exchange {
+    background: #00ccff;
+    color: #000;
+}
+
+.empty-msg {
+    text-align: center;
+    color: #666;
+    margin-top: 40px;
+    font-size: 0.9rem;
+}
+
+/* スクロールバーのカスタマイズ */
+.history-container::-webkit-scrollbar {
+    width: 4px;
+}
+
+.history-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.history-container::-webkit-scrollbar-thumb {
+    background: var(--neon-purple);
+    border-radius: 2px;
 }
