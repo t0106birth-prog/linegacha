@@ -12,12 +12,31 @@
         href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Orbitron:wght@700&family=Zen+Kurenaido&family=Noto+Sans+JP:wght@700&display=swap"
         rel="stylesheet">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        /* 外部CSSロード前のチラつきを完全に防止 */
+        .gacha-container,
+        .history-container {
+            display: none !important;
+        }
+
+        /* 初期状態の判定に応じた表示（rootクラスで制御） */
+        html.is-gacha-init .gacha-container {
+            display: flex !important;
+        }
+
+        html.is-history-init .history-container {
+            display: flex !important;
+        }
+    </style>
     <script>
-        // JSロード前に実行して画面のチラつき（フラッシュ）を防止
         (function () {
             var urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('mode') === 'history') {
-                document.documentElement.classList.add('is-history-init');
+            var isHistory = urlParams.get('mode') === 'history';
+            var root = document.documentElement;
+            if (isHistory) {
+                root.classList.add('is-history-init');
+            } else {
+                root.classList.add('is-gacha-init');
             }
         })();
     </script>
