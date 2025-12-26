@@ -9,6 +9,19 @@
     display: none !important;
 }
 
+/* 起動時のチラつき防止用 */
+html.is-gacha-init .gacha-container {
+    display: flex !important;
+}
+
+html.is-history-init .gacha-container {
+    display: none !important;
+}
+
+html.is-history-init .history-container {
+    display: flex !important;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;
