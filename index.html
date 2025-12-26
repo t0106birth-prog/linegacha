@@ -76,27 +76,34 @@
         <div id="historyContainer" class="history-container hidden">
             <h1 class="title">当選履歴</h1>
 
-            <div id="pointDashBoard" class="point-dashboard hidden">
-                <div class="pts-label">現在の保有ポイント</div>
-                <div class="pts-value"><span id="currentHistoryPoints">0</span> <span class="pts-unit">pt</span></div>
-                <button id="historyExchangeBtn" class="exchange-button-small hidden">ギフトに交換する</button>
+            <!-- Loading Mask -->
+            <div id="historyLoadingMask" class="history-loading-mask">
+                <div class="loading-text">読み込み中。。。</div>
             </div>
 
-            <div class="tabs">
-                <button class="tab-btn active" data-tab="prizes">獲得賞品</button>
-                <button class="tab-btn hidden" data-tab="points" id="pointsTabBtn">ポイント</button>
-            </div>
-
-            <div class="tab-content active" id="prizesTab">
-                <div id="prizesList" class="history-list">
-                    <!-- Prize items will be injected here -->
-                    <div class="empty-msg">履歴がありません</div>
+            <div id="historyRealContent" class="history-real-content hidden">
+                <div id="pointDashBoard" class="point-dashboard hidden">
+                    <div class="pts-label">現在の保有ポイント</div>
+                    <div class="pts-value"><span id="currentHistoryPoints">---</span> <span class="pts-unit">pt</span>
+                    </div>
+                    <button id="historyExchangeBtn" class="exchange-button-small hidden">ギフトに交換する</button>
                 </div>
-            </div>
 
-            <div class="tab-content" id="pointsTab">
-                <div id="exchangeList" class="history-list">
-                    <!-- Exchange items will be injected here -->
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="prizes">獲得賞品</button>
+                    <button class="tab-btn hidden" data-tab="points" id="pointsTabBtn">ポイント</button>
+                </div>
+
+                <div class="tab-content active" id="prizesTab">
+                    <div id="prizesList" class="history-list">
+                        <!-- Content -->
+                    </div>
+                </div>
+
+                <div class="tab-content" id="pointsTab">
+                    <div id="exchangeList" class="history-list">
+                        <!-- Content -->
+                    </div>
                 </div>
             </div>
         </div>
