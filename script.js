@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const MY_LIFF_ID = '2006502233-yq0x2pDd';
 
     // 1. Google Apps Scriptをデプロイして発行されたURLをここに貼り付けてください。
-    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwnOF8rMZb47kg0Wc1tbXt2OwWf7wDSg5ZPtV94RJq1Hz5nNYOUcjjY5slQE0a1cDtW8A/exec'; 
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwt38OiI5SnEaPGWUMfh8ihDP_mcTM5WDeEANJIG6bhdUxwcJo4SEXTZANo4CqLsnY_DA/exec'; 
 
     // 3. 本番通信を行う場合は false に、デモ（テスト）の場合は true にしてください。
     const USE_MOCK_BACKEND = false;
@@ -51,13 +51,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Start routing check immediately
+    handleRouting();
+
     if (!USE_MOCK_BACKEND) {
         initializeLiff().then(() => {
+            // Re-run handleRouting to ensure we have userId context if needed
             handleRouting();
         });
-    } else {
-        // Mock mode routing
-        setTimeout(handleRouting, 100);
     }
 
     /**
@@ -620,6 +621,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentPointsEl = document.getElementById('currentHistoryPoints');
         const exchangeBtn = document.getElementById('historyExchangeBtn');
         const pointsTabBtn = document.getElementById('pointsTabBtn');
+        const loadingMask = document.getElementById('historyLoadingMask');
+        const realContent = document.getElementById('historyRealContent');
+
+        // データ取得完了後の表示切り替え
+        if (loadingMask) loadingMask.classList.add('hidden');
+        if (realContent) realContent.classList.remove('hidden');
 
         // ポイント表示制御
         if (data.points > 0 || data.exchange.length > 0) {
