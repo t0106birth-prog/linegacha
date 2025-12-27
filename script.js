@@ -583,8 +583,16 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * 履歴データを取得して描画する
      */
-    async function loadHistory() {
+    async function loadHistory(showMask = true) {
         try {
+            const loadingMask = document.getElementById('historyLoadingMask');
+            const realContent = document.getElementById('historyRealContent');
+
+            if (showMask) {
+                if (loadingMask) loadingMask.classList.remove('hidden');
+                if (realContent) realContent.classList.add('hidden');
+            }
+
             let data;
             if (USE_MOCK_BACKEND) {
                 // デモ用データ
@@ -624,9 +632,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const loadingMask = document.getElementById('historyLoadingMask');
         const realContent = document.getElementById('historyRealContent');
 
-        // データ取得完了後の表示切り替え
-        if (loadingMask) loadingMask.classList.add('hidden');
-        if (realContent) realContent.classList.remove('hidden');
+        // 獲得賞品リストの作成
+        const prizesFragment = document.createDocumentFragment();
+        if (data.prizes.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'empty-msg';
+            empty.textContent = '獲得した賞品はありません';
+            prizesFragment.appendChild(empty);
+        } else {
+            data.prizes.forEach(item => {
+                prizesFragment.appendChild(createHistoryItem(item));
+            });
+        }
+
+        // 交換履歴リストの作成
+        const exchangeFragment = document.createDocumentFragment();
+        if (data.exchange.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'empty-msg';
+            empty.textContent = '交換履歴はありません';
+            exchangeFragment.appendChild(empty);
+        } else {
+            data.exchange.forEach(item => {
+                exchangeFragment.appendChild(createHistoryItem(item));
+            });
+        }
+
+        // DOMへの反映
+        prizesList.innerHTML = '';
+        prizesList.appendChild(prizesFragment);
+
+        exchangeList.innerHTML = '';
+        exchangeList.appendChild(exchangeFragment);
 
         // ポイント表示制御
         if (data.points > 0 || data.exchange.length > 0) {
@@ -636,31 +673,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (data.canExchange) {
                 exchangeBtn.classList.remove('hidden');
-                exchangeBtn.onclick = () => handleExchange().then(() => loadHistory());
+                exchangeBtn.onclick = () => handleExchange().then(() => loadHistory(false));
             } else {
                 exchangeBtn.classList.add('hidden');
             }
         }
 
-        // 獲得賞品リスト
-        prizesList.innerHTML = '';
-        if (data.prizes.length === 0) {
-            prizesList.innerHTML = '<div class="empty-msg">獲得した賞品はありません</div>';
-        } else {
-            data.prizes.forEach(item => {
-                prizesList.appendChild(createHistoryItem(item));
-            });
-        }
-
-        // 交換履歴リスト (ポイントタブ内)
-        exchangeList.innerHTML = '';
-        if (data.exchange.length === 0) {
-            exchangeList.innerHTML = '<div class="empty-msg">交換履歴はありません</div>';
-        } else {
-            data.exchange.forEach(item => {
-                exchangeList.appendChild(createHistoryItem(item));
-            });
-        }
+        // すべての準備が整ってから表示を切り替える (フラッシュ防止)
+        if (loadingMask) loadingMask.classList.add('hidden');
+        if (realContent) realContent.classList.remove('hidden');
     }
 
     /**
