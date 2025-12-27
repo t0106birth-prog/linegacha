@@ -83,6 +83,15 @@ document.addEventListener('DOMContentLoaded', () => {
             gachaContainer.classList.remove('hidden');
             historyContainer.classList.add('hidden');
         }
+
+        // Hide Global Loader
+        const globalLoader = document.getElementById('globalLoader');
+        if (globalLoader) {
+            globalLoader.style.opacity = '0';
+            setTimeout(() => {
+                globalLoader.classList.add('hidden');
+            }, 500);
+        }
     }
 
     spinBtn.addEventListener('click', async () => {
