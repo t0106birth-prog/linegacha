@@ -51,12 +51,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Start routing check immediately
-    handleRouting();
-
-    if (!USE_MOCK_BACKEND) {
+    // Start routing check
+    // Prevent double execution by waiting for LIFF init if using real backend
+    if (USE_MOCK_BACKEND) {
+        handleRouting();
+    } else {
         initializeLiff().then(() => {
-            // Re-run handleRouting to ensure we have userId context if needed
             handleRouting();
         });
     }
