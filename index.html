@@ -13,33 +13,10 @@
         rel="stylesheet">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        /* 外部CSSロード前のチラつきを完全に防止 */
-        .gacha-container,
-        .history-container {
+        .hidden {
             display: none !important;
         }
-
-        /* 初期状態の判定に応じた表示（rootクラスで制御） */
-        html.is-gacha-init .gacha-container {
-            display: flex !important;
-        }
-
-        html.is-history-init .history-container {
-            display: flex !important;
-        }
     </style>
-    <script>
-        (function () {
-            var urlParams = new URLSearchParams(window.location.search);
-            var isHistory = urlParams.get('mode') === 'history';
-            var root = document.documentElement;
-            if (isHistory) {
-                root.classList.add('is-history-init');
-            } else {
-                root.classList.add('is-gacha-init');
-            }
-        })();
-    </script>
 </head>
 
 <body>
@@ -48,7 +25,7 @@
         <div class="background-overlay"></div>
 
         <!-- Main Content -->
-        <main class="gacha-container">
+        <main class="gacha-container hidden">
             <h1 class="title">BOXガチャ</h1>
 
             <div class="box-area" id="boxArea">
