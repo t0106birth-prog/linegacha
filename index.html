@@ -78,7 +78,10 @@
 
             <!-- Loading Mask -->
             <div id="historyLoadingMask" class="history-loading-mask">
-                <div class="loading-text">読み込み中。。。</div>
+                <div class="neon-loading-container">
+                    <div class="neon-spinner"></div>
+                    <div class="loading-text">履歴を読み込み中</div>
+                </div>
             </div>
 
             <div id="historyRealContent" class="history-real-content hidden">
@@ -95,15 +98,11 @@
                 </div>
 
                 <div class="tab-content active" id="prizesTab">
-                    <div id="prizesList" class="history-list">
-                        <!-- Content -->
-                    </div>
+                    <div id="prizesList" class="history-list"></div>
                 </div>
 
                 <div class="tab-content" id="pointsTab">
-                    <div id="exchangeList" class="history-list">
-                        <!-- Content -->
-                    </div>
+                    <div id="exchangeList" class="history-list"></div>
                 </div>
             </div>
         </div>
