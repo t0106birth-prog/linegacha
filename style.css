@@ -10,17 +10,7 @@
 }
 
 /* 起動時のチラつき防止用 */
-html.is-gacha-init .gacha-container {
-    display: flex !important;
-}
-
-html.is-history-init .gacha-container {
-    display: none !important;
-}
-
-html.is-history-init .history-container {
-    display: flex !important;
-}
+/* HTML側でデフォルトhiddenクラスを付与する方式に変更したため、ここでの制御は不要 */
 
 * {
     box-sizing: border-box;
