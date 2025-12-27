@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const MY_LIFF_ID = '2006502233-yq0x2pDd';
 
     // 1. Google Apps Scriptをデプロイして発行されたURLをここに貼り付けてください。
-    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycby5YPYrSSTriBbS9eTYqW6vcgpx1uXU5ivFczglJQ5xsFmbVq0-Zonqp5Uvv3jnkCLl/exec'; 
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyfSExjuJXwcv-NMqGL7aggtg7FL66vCCnNuWxxYcCNo5HjOkK0QVZOcnfGf7B4f_CTwg/exec'; 
 
     // 3. 本番通信を行う場合は false に、デモ（テスト）の場合は true にしてください。
     const USE_MOCK_BACKEND = false;
@@ -70,6 +70,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (mode === 'history') {
             gachaContainer.classList.add('hidden');
+            // 履歴に入る瞬間にコンテンツを完全に隠し、ローディングを確実に表示する
+            const loadingMask = document.getElementById('historyLoadingMask');
+            const realContent = document.getElementById('historyRealContent');
+            if (loadingMask) loadingMask.classList.remove('hidden');
+            if (realContent) realContent.classList.add('hidden');
+
             historyContainer.classList.remove('hidden');
             loadHistory();
         } else {
@@ -587,8 +593,14 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const loadingMask = document.getElementById('historyLoadingMask');
             const realContent = document.getElementById('historyRealContent');
+            const prizesList = document.getElementById('prizesList');
+            const exchangeList = document.getElementById('exchangeList');
 
             if (showMask) {
+                // 初期化時にリストを完全に空にする（一瞬古いデータが見えるのを防ぐ）
+                if (prizesList) prizesList.innerHTML = '';
+                if (exchangeList) exchangeList.innerHTML = '';
+
                 if (loadingMask) loadingMask.classList.remove('hidden');
                 if (realContent) realContent.classList.add('hidden');
             }
@@ -680,8 +692,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // すべての準備が整ってから表示を切り替える (フラッシュ防止)
-        if (loadingMask) loadingMask.classList.add('hidden');
-        if (realContent) realContent.classList.remove('hidden');
+        // setTimeoutを入れることで、DOMの反映とクラスの適用をブラウザに確実に行わせる
+        setTimeout(() => {
+            if (loadingMask) loadingMask.classList.add('hidden');
+            if (realContent) realContent.classList.remove('hidden');
+        }, 50);
     }
 
     /**
