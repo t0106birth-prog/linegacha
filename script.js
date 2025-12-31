@@ -415,6 +415,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+        // コピーボタン作成（先に作成しておく）
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-button';
+        copyBtn.textContent = '📋 コードをコピー';
+        copyBtn.style.width = '100%';
+        copyBtn.style.padding = '8px';
+        copyBtn.style.border = 'none';
+        copyBtn.style.borderRadius = '5px';
+        copyBtn.style.fontWeight = 'bold';
+
+        // コードボックス作成
         const codeBox = document.createElement('div');
         codeBox.className = 'gift-code-box';
         codeBox.style.padding = '15px';
@@ -422,36 +433,46 @@ document.addEventListener('DOMContentLoaded', () => {
         codeBox.style.fontFamily = 'monospace';
         codeBox.style.fontSize = '1.2rem';
         codeBox.style.margin = '10px 0';
-        // ロック時は色を控えめに、通常時は指定色で枠線
-        codeBox.style.border = isLocked ? '1px dashed #666' : `1px dashed ${color}`;
-        codeBox.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
 
+        // 初期表示設定
         if (isLocked) {
-            // --- ロック中の表示 ---
+            // ロック状態のスタイル
+            codeBox.style.border = '1px dashed #666';
+            codeBox.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
             codeBox.style.color = '#ccc';
+
+            copyBtn.style.display = 'none'; // 最初は非表示
+            copyBtn.style.backgroundColor = '#555';
+            copyBtn.style.color = '#aaa';
+            copyBtn.style.cursor = 'not-allowed';
+
+            // カウントダウン表示
             codeBox.innerHTML = `
                 <div style="font-size: 0.9rem; margin-bottom: 8px;">🔒 ギフトコード発行待ち</div>
                 <div id="countdownTimer" style="font-size: 1.4rem; font-weight: bold; color: #ffeb3b;">--:--:--</div>
                 <div style="font-size: 0.8rem; color: #888; margin-top: 5px;">24時間後に表示されます</div>
             `;
 
-            // カウントダウン処理
             const updateTimer = () => {
                 const now = new Date();
                 const diff = releaseDate - now;
 
                 if (diff <= 0) {
-                    // 時間経過したらリロードせずに表示を切り替える（簡易的）
+                    // 解除！
+                    if (timerId) clearInterval(timerId);
+                    isLocked = false;
+
+                    // UI更新（ロック解除）
                     codeBox.textContent = giftCode;
                     codeBox.style.color = '#fff';
                     codeBox.style.border = `1px dashed ${color}`;
-                    // コピーボタンを表示させるなどの処理が必要だが、
-                    // ここでは「リロードしてください」等の案内でも可、または再描画
-                    if (copyBtn) {
-                        copyBtn.style.display = 'block';
-                        copyBtn.textContent = '📋 コードをコピー (REFRESH)';
-                    }
-                    if (timerId) clearInterval(timerId);
+
+                    // コピーボタン有効化
+                    copyBtn.style.display = 'block';
+                    copyBtn.style.backgroundColor = color;
+                    copyBtn.style.color = '#000';
+                    copyBtn.style.cursor = 'pointer';
+                    copyBtn.textContent = '📋 コードをコピー';
                     return;
                 }
 
@@ -465,37 +486,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             };
 
-            // 初回実行とインターバル設定
+            // 初回実行とインターバル
+            // ※ここで diff <= 0 でも copyBtn は定義済みなのでエラーにならない
+            let timerId = null;
             updateTimer();
-            const timerId = setInterval(updateTimer, 1000);
+            // もしupdateTimer内で完了していたらisLockedがfalseになりUI更新される
 
-            // モーダルが閉じられたらタイマーを止めるためのクリーンアップが必要だが
-            // 簡易的に、要素がDOMになくなったらエラーになるだけなのでtry-catch等は省略
+            if (isLocked) {
+                timerId = setInterval(updateTimer, 1000);
+            }
+
         } else {
-            // --- 通常表示（ロック解除後） ---
+            // 通常表示
+            codeBox.style.border = `1px dashed ${color}`;
+            codeBox.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
             codeBox.textContent = giftCode;
+
+            // コピーボタン通常スタイル
+            copyBtn.style.display = 'block';
+            copyBtn.style.backgroundColor = color;
+            copyBtn.style.color = '#000';
+            copyBtn.style.cursor = 'pointer';
         }
 
         container.appendChild(codeBox);
 
-        // コピーボタン（ロック中は非表示）
-        const copyBtn = document.createElement('button');
-        copyBtn.className = 'copy-button';
-        copyBtn.textContent = '📋 コードをコピー';
-        copyBtn.style.width = '100%';
-        copyBtn.style.padding = '8px';
-        copyBtn.style.backgroundColor = isLocked ? '#555' : color;
-        copyBtn.style.color = isLocked ? '#aaa' : '#000';
-        copyBtn.style.border = 'none';
-        copyBtn.style.borderRadius = '5px';
-        copyBtn.style.fontWeight = 'bold';
-        copyBtn.style.cursor = isLocked ? 'not-allowed' : 'pointer';
-
-        if (isLocked) {
-            // ロック中はボタンを隠すか、無効化する
-            copyBtn.style.display = 'none';
-        }
-
+        // コピーイベント
         copyBtn.addEventListener('click', () => {
             if (isLocked) return;
             navigator.clipboard.writeText(giftCode).then(() => {
