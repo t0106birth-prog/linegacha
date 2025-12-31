@@ -830,12 +830,22 @@ document.addEventListener('DOMContentLoaded', () => {
             // EXCHANGEは即時付与なのでロック判定しない
             if (item.rank !== 'EXCHANGE' && now < releaseDate) {
                 const diffMs = releaseDate - now;
-                const diffHours = Math.ceil(diffMs / (1000 * 60 * 60)); // 残り時間（切り上げ）
+                const diffMinutes = Math.ceil(diffMs / (1000 * 60)); // 分（切り上げ）
+
                 const releaseDateStr = releaseDate.toLocaleString('ja-JP', {
                     month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
                 });
+
+                let remainingText;
+                if (diffMinutes <= 60) {
+                    remainingText = `あと約${diffMinutes}分`;
+                } else {
+                    const diffHours = Math.ceil(diffMinutes / 60);
+                    remainingText = `あと約${diffHours}時間`;
+                }
+
                 // ロック中の表示
-                dateDisplayHtml = `<span style="color: #ff5555; font-weight:bold;">🔒 ${releaseDateStr} 解除 (あと約${diffHours}時間)</span>`;
+                dateDisplayHtml = `<span style="color: #ff5555; font-weight:bold;">🔒 ${releaseDateStr} 解除 (${remainingText})</span>`;
             } else {
                 // 通常表示
                 dateDisplayHtml = wonDate.toLocaleString('ja-JP', {
