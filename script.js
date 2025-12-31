@@ -17,18 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
         winEffect: 'assets/win_effect.png'
     };
 
-    // -----------------------------------------------------------------
-    // ★ IMPORTANT: 設定エリア
-    // -----------------------------------------------------------------
-    // 1. LINE Developersで発行したLIFF IDを入力してください
-    const MY_LIFF_ID = '2006502233-yq0x2pDd';
-
-    // 1. Google Apps Scriptをデプロイして発行されたURLをここに貼り付けてください。
-    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxfgpPbFITKkchDyMvmDM0ix2njAPzbwTJnEwoXuumF09YauUgRlIu8YY7ICOZHwz-hSQ/exec'; 
-
-    // 3. 本番通信を行う場合は false に、デモ（テスト）の場合は true にしてください。
-    const USE_MOCK_BACKEND = false;
-    // -----------------------------------------------------------------
+    // 設定値は config.js に分離されました
+    // config.js が script.js より先に読み込まれている必要があります
 
     let currentUserId = 'anonymous';
     let currentUserName = 'Guest';
@@ -702,14 +692,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let data;
             if (USE_MOCK_BACKEND) {
-                // デモ用データ
+                // デモ用データ（現在時刻を基準に動的生成）
+                const now = new Date();
+                const oneHourAgo = new Date(now.getTime() - 1 * 60 * 60 * 1000); // 1時間前（残り23時間）
+                const yesterday = new Date(now.getTime() - 25 * 60 * 60 * 1000); // 25時間前（ロック解除済）
+                const twoDaysAgo = new Date(now.getTime() - 48 * 60 * 60 * 1000);
+
+                // toLocaleStringだとフォーマットがブラウザ依存になるため、ISOStringなどを使うか、整形する
+                // ここでは簡易的に toISOString を使う（アプリ側でパース可能）
+                const dateLocked = oneHourAgo.toISOString();
+                const dateUnlocked = yesterday.toISOString();
+                const dateExchange = twoDaysAgo.toISOString();
+
                 data = {
                     prizes: [
-                        { rank: 'SSR', prizeName: '✨ アルマンド・ゴールド ✨', giftCode: 'MOCK-SSR-1234', date: '2025-01-01 10:00:00', wonDate: '2025-01-01 10:00:00', manageId: 'SSR001' },
-                        { rank: 'R', prizeName: '🎫 Amazonギフト券 1,000円分 🎫', giftCode: 'AMZN-R100-TEST', date: '2024-12-31 15:30:00', wonDate: '2024-12-31 15:30:00', manageId: 'R005' }
+                        { rank: 'SSR', prizeName: '✨ アルマンド・ゴールド (Lock) ✨', giftCode: 'MOCK-SSR-LOCKED', date: dateLocked, wonDate: dateLocked, manageId: 'SSR001' },
+                        { rank: 'R', prizeName: '🎫 Amazonギフト券 (Open) 🎫', giftCode: 'AMZN-R100-OPEN', date: dateUnlocked, wonDate: dateUnlocked, manageId: 'R005' }
                     ],
                     exchange: [
-                        { rank: 'EXCHANGE', prizeName: 'Amazonギフト券 500円分', giftCode: 'AMZN-500-EXCH', date: '2024-12-25 09:00:00', wonDate: '2024-12-25 09:00:00', manageId: 'EX001' }
+                        { rank: 'EXCHANGE', prizeName: 'Amazonギフト券 500円分', giftCode: 'AMZN-500-EXCH', date: dateExchange, wonDate: dateExchange, manageId: 'EX001' }
                     ],
                     points: 5,
                     canExchange: false
@@ -965,5 +966,3 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 });
-
-                          
