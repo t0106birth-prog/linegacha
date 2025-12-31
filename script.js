@@ -802,15 +802,36 @@ document.addEventListener('DOMContentLoaded', () => {
         const div = document.createElement('div');
         div.className = 'history-item';
 
-        // 日付を整形 (GASのDateオブジェクトまたは文字列に対応)
-        const dateStr = item.date ? new Date(item.date).toLocaleString('ja-JP', {
-            year: 'numeric', month: '2-digit', day: '2-digit',
-            hour: '2-digit', minute: '2-digit'
-        }) : '不明';
+        // 日付とロック状態の判定
+        let dateDisplayHtml = '不明';
+        const targetDate = item.wonDate || item.date;
+
+        if (targetDate) {
+            const wonDate = new Date(targetDate);
+            const releaseDate = new Date(wonDate.getTime() + 24 * 60 * 60 * 1000);
+            const now = new Date();
+
+            // EXCHANGEは即時付与なのでロック判定しない
+            if (item.rank !== 'EXCHANGE' && now < releaseDate) {
+                const diffMs = releaseDate - now;
+                const diffHours = Math.ceil(diffMs / (1000 * 60 * 60)); // 残り時間（切り上げ）
+                const releaseDateStr = releaseDate.toLocaleString('ja-JP', {
+                    month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+                // ロック中の表示
+                dateDisplayHtml = `<span style="color: #ff5555; font-weight:bold;">🔒 ${releaseDateStr} 解除 (あと約${diffHours}時間)</span>`;
+            } else {
+                // 通常表示
+                dateDisplayHtml = wonDate.toLocaleString('ja-JP', {
+                    year: 'numeric', month: '2-digit', day: '2-digit',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            }
+        }
 
         div.innerHTML = `
             <div class="item-info">
-                <div class="item-date">${dateStr}</div>
+                <div class="item-date">${dateDisplayHtml}</div>
                 <div class="item-name">${item.prizeName}</div>
                 ${item.manageId ? `<div class="item-manage-id" style="font-size: 0.75rem; color: #888;">ID: ${item.manageId}</div>` : ''}
             </div>
