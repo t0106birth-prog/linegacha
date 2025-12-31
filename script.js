@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const MY_LIFF_ID = '2006502233-yq0x2pDd';
 
     // 1. Google Apps Scriptをデプロイして発行されたURLをここに貼り付けてください。
-    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbwOV6aBBjwHZ5ZUQunRoJmaPYTaZ03Di2YQp6yUS32-C2blmxcipjsZrBgC26yDjlX3kw/exec'; 
+    const GAS_API_URL = 'https://script.google.com/macros/s/AKfycbxfgpPbFITKkchDyMvmDM0ix2njAPzbwTJnEwoXuumF09YauUgRlIu8YY7ICOZHwz-hSQ/exec'; 
 
     // 3. 本番通信を行う場合は false に、デモ（テスト）の場合は true にしてください。
     const USE_MOCK_BACKEND = false;
@@ -284,8 +284,8 @@ document.addEventListener('DOMContentLoaded', () => {
         text.textContent = data.prizeName;
         resultContent.appendChild(text);
 
-        // ギフトコード表示
-        renderGiftCodeDisplay(data.giftCode, '#ffd700');
+        // ギフトコード表示 (管理ID, 当選日時を渡す)
+        renderGiftCodeDisplay(data.giftCode, '#ffd700', data.wonDate, data.manageId);
 
         // LINE送信案内
         resultContent.appendChild(createLineSentMessage(data.message));
@@ -333,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resultContent.appendChild(text);
 
         // ギフトコード表示
-        renderGiftCodeDisplay(data.giftCode, '#bc13fe');
+        renderGiftCodeDisplay(data.giftCode, '#bc13fe', data.wonDate, data.manageId);
 
         // LINE送信案内
         resultContent.appendChild(createLineSentMessage(data.message));
@@ -381,47 +381,133 @@ document.addEventListener('DOMContentLoaded', () => {
         resultContent.appendChild(text);
 
         // ギフトコード表示
-        renderGiftCodeDisplay(data.giftCode, '#00ff88');
+        renderGiftCodeDisplay(data.giftCode, '#00ff88', data.wonDate, data.manageId);
 
         // LINE送信案内
         resultContent.appendChild(createLineSentMessage(data.message));
     }
 
     /**
-     * ギフトコードの表示とコピーボタンを作成
+     * ギフトコードの表示とコピーボタンを作成（24時間ロック機能付き）
      */
-    function renderGiftCodeDisplay(giftCode, color) {
+    function renderGiftCodeDisplay(giftCode, color, wonDateStr, manageId) {
         if (!giftCode) return;
 
-        const codeContainer = document.createElement('div');
-        codeContainer.className = 'gift-code-container';
-        codeContainer.style.marginTop = '20px';
+        const container = document.createElement('div');
+        container.className = 'gift-code-container';
+        container.style.marginTop = '20px';
+
+        // 管理IDの表示
+        if (manageId) {
+            const idBadge = document.createElement('div');
+            idBadge.textContent = `ID: ${manageId}`;
+            idBadge.style.fontSize = '0.8rem';
+            idBadge.style.color = '#aaa';
+            idBadge.style.marginBottom = '5px';
+            idBadge.style.fontFamily = 'monospace';
+            container.appendChild(idBadge);
+        }
+
+        // --- 24時間ロック判定ロジック ---
+        // wonDateStr は "2024/12/31 12:00:00" のような形式を想定
+        // 日付がない場合（即時配布の交換など）はロックしない
+        let isLocked = false;
+        let releaseDate = null;
+
+        if (wonDateStr) {
+            const wonDate = new Date(wonDateStr);
+            if (!isNaN(wonDate.getTime())) {
+                releaseDate = new Date(wonDate.getTime() + 24 * 60 * 60 * 1000); // 24時間後
+                const now = new Date();
+                if (now < releaseDate) {
+                    isLocked = true;
+                }
+            }
+        }
 
         const codeBox = document.createElement('div');
         codeBox.className = 'gift-code-box';
-        codeBox.textContent = giftCode;
-        codeBox.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-        codeBox.style.padding = '10px';
+        codeBox.style.padding = '15px';
         codeBox.style.borderRadius = '5px';
         codeBox.style.fontFamily = 'monospace';
         codeBox.style.fontSize = '1.2rem';
         codeBox.style.margin = '10px 0';
-        codeBox.style.border = `1px dashed ${color}`;
-        codeContainer.appendChild(codeBox);
+        // ロック時は色を控えめに、通常時は指定色で枠線
+        codeBox.style.border = isLocked ? '1px dashed #666' : `1px dashed ${color}`;
+        codeBox.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
 
+        if (isLocked) {
+            // --- ロック中の表示 ---
+            codeBox.style.color = '#ccc';
+            codeBox.innerHTML = `
+                <div style="font-size: 0.9rem; margin-bottom: 8px;">🔒 ギフトコード発行待ち</div>
+                <div id="countdownTimer" style="font-size: 1.4rem; font-weight: bold; color: #ffeb3b;">--:--:--</div>
+                <div style="font-size: 0.8rem; color: #888; margin-top: 5px;">24時間後に表示されます</div>
+            `;
+
+            // カウントダウン処理
+            const updateTimer = () => {
+                const now = new Date();
+                const diff = releaseDate - now;
+
+                if (diff <= 0) {
+                    // 時間経過したらリロードせずに表示を切り替える（簡易的）
+                    codeBox.textContent = giftCode;
+                    codeBox.style.color = '#fff';
+                    codeBox.style.border = `1px dashed ${color}`;
+                    // コピーボタンを表示させるなどの処理が必要だが、
+                    // ここでは「リロードしてください」等の案内でも可、または再描画
+                    if (copyBtn) {
+                        copyBtn.style.display = 'block';
+                        copyBtn.textContent = '📋 コードをコピー (REFRESH)';
+                    }
+                    if (timerId) clearInterval(timerId);
+                    return;
+                }
+
+                const h = Math.floor(diff / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+                const timerEl = document.getElementById('countdownTimer');
+                if (timerEl) {
+                    timerEl.textContent = `あと ${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                }
+            };
+
+            // 初回実行とインターバル設定
+            updateTimer();
+            const timerId = setInterval(updateTimer, 1000);
+
+            // モーダルが閉じられたらタイマーを止めるためのクリーンアップが必要だが
+            // 簡易的に、要素がDOMになくなったらエラーになるだけなのでtry-catch等は省略
+        } else {
+            // --- 通常表示（ロック解除後） ---
+            codeBox.textContent = giftCode;
+        }
+
+        container.appendChild(codeBox);
+
+        // コピーボタン（ロック中は非表示）
         const copyBtn = document.createElement('button');
         copyBtn.className = 'copy-button';
         copyBtn.textContent = '📋 コードをコピー';
         copyBtn.style.width = '100%';
         copyBtn.style.padding = '8px';
-        copyBtn.style.backgroundColor = color;
-        copyBtn.style.color = '#000';
+        copyBtn.style.backgroundColor = isLocked ? '#555' : color;
+        copyBtn.style.color = isLocked ? '#aaa' : '#000';
         copyBtn.style.border = 'none';
         copyBtn.style.borderRadius = '5px';
         copyBtn.style.fontWeight = 'bold';
-        copyBtn.style.cursor = 'pointer';
+        copyBtn.style.cursor = isLocked ? 'not-allowed' : 'pointer';
+
+        if (isLocked) {
+            // ロック中はボタンを隠すか、無効化する
+            copyBtn.style.display = 'none';
+        }
 
         copyBtn.addEventListener('click', () => {
+            if (isLocked) return;
             navigator.clipboard.writeText(giftCode).then(() => {
                 copyBtn.textContent = '✅ コピーしました！';
                 setTimeout(() => {
@@ -431,8 +517,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('コピーに失敗しました。手動でコピーしてください。');
             });
         });
-        codeContainer.appendChild(copyBtn);
-        resultContent.appendChild(codeContainer);
+        container.appendChild(copyBtn);
+        resultContent.appendChild(container);
     }
 
     /**
@@ -619,11 +705,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // デモ用データ
                 data = {
                     prizes: [
-                        { rank: 'SSR', prizeName: '✨ アルマンド・ゴールド ✨', giftCode: 'MOCK-SSR-1234', date: '2024-12-24 10:00:00' },
-                        { rank: 'R', prizeName: '🎫 Amazonギフト券 1,000円分 🎫', giftCode: 'AMZN-R100-TEST', date: '2024-12-23 15:30:00' }
+                        { rank: 'SSR', prizeName: '✨ アルマンド・ゴールド ✨', giftCode: 'MOCK-SSR-1234', date: '2025-01-01 10:00:00', wonDate: '2025-01-01 10:00:00', manageId: 'SSR001' },
+                        { rank: 'R', prizeName: '🎫 Amazonギフト券 1,000円分 🎫', giftCode: 'AMZN-R100-TEST', date: '2024-12-31 15:30:00', wonDate: '2024-12-31 15:30:00', manageId: 'R005' }
                     ],
                     exchange: [
-                        { rank: 'EXCHANGE', prizeName: 'Amazonギフト券 500円分', giftCode: 'AMZN-500-EXCH', date: '2024-12-25 09:00:00' }
+                        { rank: 'EXCHANGE', prizeName: 'Amazonギフト券 500円分', giftCode: 'AMZN-500-EXCH', date: '2024-12-25 09:00:00', wonDate: '2024-12-25 09:00:00', manageId: 'EX001' }
                     ],
                     points: 5,
                     canExchange: false
@@ -725,6 +811,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="item-info">
                 <div class="item-date">${dateStr}</div>
                 <div class="item-name">${item.prizeName}</div>
+                ${item.manageId ? `<div class="item-manage-id" style="font-size: 0.75rem; color: #888;">ID: ${item.manageId}</div>` : ''}
             </div>
             <div class="item-rank-badge item-rank-${item.rank.toLowerCase()}">${item.rank === 'EXCHANGE' ? 'GIFT' : item.rank}</div>
         `;
@@ -735,6 +822,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 rank: item.rank,
                 prizeName: item.prizeName,
                 giftCode: item.giftCode,
+                wonDate: item.wonDate || item.date, // wonDateがなければdateを使用
+                manageId: item.manageId,
                 status: item.rank === 'EXCHANGE' ? 'exchanged' : 'win',
                 message: '獲得済みの景品です'
             };
@@ -794,20 +883,29 @@ document.addEventListener('DOMContentLoaded', () => {
         // Simulate network delay
         await new Promise(r => setTimeout(r, 1000));
 
+        const now = new Date();
+        const wonDateStr = now.toISOString();
+
         // テストコードパターン
         if (code === 'SSR') {
             return {
                 status: 'win',
                 rank: 'SSR',
-                prizeName: '✨ アルマンド・ゴールド ✨',
-                formUrl: 'https://forms.google.com/example'
+                prizeName: '✨ デモ用SSR賞品 ✨',
+                giftCode: 'DEMO-SSR-CODE',
+                manageId: 'SSR099',
+                wonDate: wonDateStr,
+                message: 'おめでとうございます！24時間後にギフトコードが表示されます'
             };
         } else if (code === 'SR') {
             return {
                 status: 'win',
                 rank: 'SR',
                 prizeName: '🎁 高級ワインセット 🎁',
-                formUrl: 'https://forms.google.com/example'
+                giftCode: 'DEMO-SR-CODE',
+                manageId: 'SR099',
+                wonDate: wonDateStr,
+                message: 'おめでとうございます！24時間後にギフトコードが表示されます'
             };
         } else if (code === 'R') {
             return {
@@ -815,7 +913,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 rank: 'R',
                 giftCode: 'AMZN-R100-TEST-CODE',
                 prizeName: '🎫 Amazonギフト券 1,000円分 🎫',
-                message: '詳細をLINEに送信しました'
+                manageId: 'R099',
+                wonDate: wonDateStr,
+                message: 'おめでとうございます！24時間後にギフトコードが表示されます'
             };
         } else if (code === 'POINT') {
             // 通常ポイント（交換不可）
@@ -865,3 +965,5 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 });
+
+                          
