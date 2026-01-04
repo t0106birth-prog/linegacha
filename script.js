@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
         prise: new Audio(AUDIO_ASSETS.prise),
         coin: new Audio(AUDIO_ASSETS.coin)
     };
-    audio.boxMove.loop = true;
+    // audio.boxMove.loop = true; // Loop removed as per user request
 
     // Helper to play result sound
     function playResultSound(rank) {
