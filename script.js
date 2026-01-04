@@ -17,6 +17,36 @@ document.addEventListener('DOMContentLoaded', () => {
         winEffect: 'assets/win_effect.png'
     };
 
+    const AUDIO_ASSETS = {
+        boxMove: 'assets/boxmove.mp3',
+        boxOpen: 'assets/boxopen.mp3',
+        prise: 'assets/prise.mp3',
+        coin: 'assets/coin.mp3'
+    };
+
+    const audio = {
+        boxMove: new Audio(AUDIO_ASSETS.boxMove),
+        boxOpen: new Audio(AUDIO_ASSETS.boxOpen),
+        prise: new Audio(AUDIO_ASSETS.prise),
+        coin: new Audio(AUDIO_ASSETS.coin)
+    };
+    audio.boxMove.loop = true;
+
+    // Helper to play result sound
+    function playResultSound(rank) {
+        if (!rank) return;
+        // Stop any previous result sounds
+        audio.prise.pause(); audio.prise.currentTime = 0;
+        audio.coin.pause(); audio.coin.currentTime = 0;
+
+        if (rank === 'SSR' || rank === 'SR') {
+            audio.prise.play().catch(e => console.warn('Sound play error', e));
+        } else if (rank === 'R' || rank === 'POINT') {
+            audio.coin.play().catch(e => console.warn('Sound play error', e));
+        }
+        // LOSE -> No sound
+    }
+
     // 設定値は config.js に分離されました
     // config.js が script.js より先に読み込まれている必要があります
 
@@ -107,6 +137,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Start Animation (Shake)
         treasureBox.classList.add('shaking');
+        // Play Move Sound
+        audio.boxMove.currentTime = 0;
+        audio.boxMove.play().catch(e => console.warn('Audio play error', e));
 
         try {
             // Call Backend
@@ -131,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Stop Shake
             treasureBox.classList.remove('shaking');
+            audio.boxMove.pause(); // Stop drum roll
 
             // Flash Effect
             flashOverlay.classList.add('flashing');
@@ -138,23 +172,39 @@ document.addEventListener('DOMContentLoaded', () => {
             // Switch to Open Box immediately after flash starts
             setTimeout(() => {
                 treasureBox.src = ASSETS.boxOpen;
+
+                // Play Box Open Sound
+                audio.boxOpen.currentTime = 0;
+                audio.boxOpen.play().catch(e => {
+                    console.warn('Open sound error, forcing result', e);
+                    // Fallback if sound fails
+                    finalizeResult();
+                });
             }, 250); // halfway through flash fade in
 
-            // Show Result after flash peaks
-            setTimeout(() => {
+            // Define the result finalization logic
+            const finalizeResult = () => {
                 showResult(result);
                 flashOverlay.classList.remove('flashing');
 
                 // ★ メインボタンを「CLOSE」に切り替え、有効化する
                 spinBtn.textContent = 'CLOSE';
                 spinBtn.disabled = false;
-            }, 600);
+
+                // Play Result Sound
+                playResultSound(result.rank);
+            };
+
+            // Wait for Box Open sound to end before showing result
+            audio.boxOpen.onended = finalizeResult;
+            audio.boxOpen.onerror = finalizeResult; // Safety fallback
 
         } catch (error) {
             console.error(error);
             alert('エラーが発生しました: ' + error.message);
             resetUI();
             treasureBox.classList.remove('shaking'); // Ensure shaking stops on error
+            audio.boxMove.pause(); // Ensure sound stops on error
         }
     });
 
