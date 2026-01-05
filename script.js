@@ -961,6 +961,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function resetUI() {
+        // Stop all sounds
+        Object.values(audio).forEach(a => {
+            a.pause();
+            a.currentTime = 0;
+        });
+
+
         // Reset Box
         treasureBox.src = ASSETS.boxClosed;
 
