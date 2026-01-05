@@ -21,14 +21,16 @@ document.addEventListener('DOMContentLoaded', () => {
         boxMove: 'assets/boxmove.mp3',
         boxOpen: 'assets/boxopen.mp3',
         prise: 'assets/prise.mp3',
-        coin: 'assets/coin.mp3'
+        coin: 'assets/coin.mp3',
+        lose: 'assets/lose.mp3'
     };
 
     const audio = {
         boxMove: new Audio(AUDIO_ASSETS.boxMove),
         boxOpen: new Audio(AUDIO_ASSETS.boxOpen),
         prise: new Audio(AUDIO_ASSETS.prise),
-        coin: new Audio(AUDIO_ASSETS.coin)
+        coin: new Audio(AUDIO_ASSETS.coin),
+        lose: new Audio(AUDIO_ASSETS.lose)
     };
     // audio.boxMove.loop = true; // Loop removed as per user request
 
@@ -38,13 +40,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Stop any previous result sounds
         audio.prise.pause(); audio.prise.currentTime = 0;
         audio.coin.pause(); audio.coin.currentTime = 0;
+        audio.lose.pause(); audio.lose.currentTime = 0;
 
         if (rank === 'SSR' || rank === 'SR') {
             audio.prise.play().catch(e => console.warn('Sound play error', e));
         } else if (rank === 'R' || rank === 'POINT') {
             audio.coin.play().catch(e => console.warn('Sound play error', e));
+        } else if (rank === 'LOSE') {
+            audio.lose.play().catch(e => console.warn('Sound play error', e));
         }
-        // LOSE -> No sound
     }
 
     // 設定値は config.js に分離されました
