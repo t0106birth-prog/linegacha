@@ -584,19 +584,42 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * 完全ハズレ表示
      */
+    /**
+     * ミッション表示（旧LOSE）
+     */
     function showLoseResult(data) {
+        // ミッションタイトル
+        const title = document.createElement('div');
+        title.className = 'result-text mission-title';
+        title.style.color = '#fff';
+        title.style.fontSize = '1.2rem';
+        title.style.marginTop = '30px';
+        title.style.fontWeight = 'bold';
+        title.textContent = '🎲 MISSION 🎲';
+        resultContent.appendChild(title);
+
+        // ミッションテキスト
         const text = document.createElement('div');
-        text.className = 'result-text';
-        text.style.color = '#ccc';
-        text.style.fontSize = '1.3rem';
-        text.style.marginTop = '40px';
-        text.textContent = '残念... はずれです';
+        text.className = 'result-mission-text';
+        text.style.color = '#ffeb3b';
+        text.style.fontSize = '1.4rem';
+        text.style.fontWeight = 'bold';
+        text.style.margin = '20px 0';
+        text.style.padding = '15px';
+        text.style.border = '2px solid #ffeb3b';
+        text.style.borderRadius = '10px';
+        text.style.backgroundColor = 'rgba(255, 235, 59, 0.1)';
+
+        // サーバーからミッションが来ていなければデフォルト
+        text.textContent = data.mission || '運試し！またチャレンジしてね！';
+
         resultContent.appendChild(text);
 
         const sub = document.createElement('div');
-        sub.textContent = 'また挑戦してね！';
-        sub.style.color = '#888';
+        sub.textContent = '次回の挑戦をお待ちしています！';
+        sub.style.color = '#aaa';
         sub.style.marginTop = '15px';
+        sub.style.fontSize = '0.9rem';
         resultContent.appendChild(sub);
     }
 
@@ -1044,7 +1067,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 pointsAdded: 1,
                 currentPoints: 10,
                 targetPoints: 10,
+                targetPoints: 10,
                 canExchange: true
+            };
+        } else if (code === 'LOSE') {
+            // ミッション (LOSE)
+            return {
+                status: 'lose',
+                rank: 'LOSE',
+                mission: '【デモ】店員とハイタッチして乾杯！'
             };
         } else if (code.startsWith('TEST')) {
             // ランダムポイント（旧仕様互換）
@@ -1057,7 +1088,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 canExchange: false
             };
         } else {
-            throw new Error('デモモード: 無効なシリアルコードです\n\nテスト用コード:\n"SSR" → SSR当選\n"SR" → SR当選\n"R" → R賞当選\n"POINT" → ポイント獲得\n"POINT10" → 交換可能');
+            throw new Error('デモモード: 無効なシリアルコードです\n\nテスト用コード:\n"SSR" → SSR当選\n"SR" → SR当選\n"R" → R賞当選\n"POINT" → ポイント獲得\n"POINT10" → 交換可能\n"LOSE" → ミッション');
         }
     }
 
